@@ -1,7 +1,12 @@
+use regex::Regex;
 use std::io::BufRead;
+#[macro_use]
+extern crate lazy_static;
 
 fn main() {
-    let file = std::fs::File::open("input").unwrap();
+    let args: Vec<_> = std::env::args().collect();
+    println!("{:?}", args);
+    let file = std::fs::File::open(&args[1]).unwrap();
     let mut lines = std::io::BufReader::new(file)
         .lines()
         .map(|line| line.unwrap());
@@ -38,6 +43,14 @@ fn main() {
             .filter(|passport| passport.is_valid_1())
             .count()
     );
+
+    println!(
+        "There are {} valid passwords for part 2",
+        passports
+            .iter()
+            .filter(|passport| passport.is_valid_2())
+            .count()
+    );
 }
 
 struct Passport(Vec<(String, String)>);
@@ -54,18 +67,45 @@ impl Passport {
     }
 
     fn is_valid_2(self: &Passport) -> bool {
-        return self.valid_byr();
-    }
-
-    fn valid_byr(self: &Passport) -> bool {
-        let byr = self.0.iter().find(|pair| pair.0 == "byr");
-        match byr {
-            Some(byr) => {
-                let value: usize = byr.1.parse().unwrap();
-                return 1920 <= value && value <= 2002;
+        return self.valid_field_with("byr", |byr| {
+            let value: usize = byr.parse().unwrap();
+            return 1920 <= value && value <= 2002;
+        }) && self.valid_field_with("iyr", |iyr| {
+            let value: usize = iyr.parse().unwrap();
+            return 2010 <= value && value <= 2020;
+        }) && self.valid_field_with("eyr", |eyr| {
+            let value: usize = eyr.parse().unwrap();
+            return 2020 <= value && value <= 2030;
+        }) && self.valid_field_with("hgt", |hgt| {
+            if hgt.ends_with("cm") {
+                let mut hgt = hgt.clone();
+                hgt.truncate(hgt.len() - 2);
+                let num = hgt.parse().unwrap();
+                return 150 <= num && num <= 193;
+            } else if hgt.ends_with("in") {
+                let mut hgt = hgt.clone();
+                hgt.truncate(hgt.len() - 2);
+                let num = hgt.parse().unwrap();
+                return 59 <= num && num <= 76;
+            } else {
+                false
             }
-            None => false,
-        }
+        }) && self.valid_field_with("hcl", |hcl| {
+            lazy_static! {
+                static ref RE: Regex = Regex::new("^#[0-9a-f]{6}$").unwrap();
+            }
+            return RE.is_match(hcl);
+        }) && self.valid_field_with("ecl", |ecl| {
+            lazy_static! {
+                static ref RE: Regex = Regex::new("^(amb|blu|brn|gry|grn|hzl|oth)$").unwrap();
+            }
+            return RE.is_match(ecl);
+        }) && self.valid_field_with("pid", |pid| {
+            lazy_static! {
+                static ref RE: Regex = Regex::new(r"^\d{9}$").unwrap();
+            }
+            return RE.is_match(pid);
+        });
     }
 
     fn valid_field_with(self: &Passport, field: &str, f: fn(&String) -> bool) -> bool {
@@ -73,11 +113,6 @@ impl Passport {
             .0
             .iter()
             .find_map(|pair| if pair.0 == field { Some(&pair.1) } else { None });
-        match value {
-            Some(value) => {
-                return f(value);
-            }
-            None => false,
-        }
+        return value.map(|value| f(value)).unwrap_or(false);
     }
 }
