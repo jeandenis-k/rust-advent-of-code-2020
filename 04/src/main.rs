@@ -53,10 +53,30 @@ impl Passport {
             && self.0.iter().any(|pair| pair.0 == "pid")
     }
 
+    fn is_valid_2(self: &Passport) -> bool {
+        return self.valid_byr();
+    }
+
     fn valid_byr(self: &Passport) -> bool {
         let byr = self.0.iter().find(|pair| pair.0 == "byr");
         match byr {
-            Some(byr) => true,
+            Some(byr) => {
+                let value: usize = byr.1.parse().unwrap();
+                return 1920 <= value && value <= 2002;
+            }
+            None => false,
+        }
+    }
+
+    fn valid_field_with(self: &Passport, field: &str, f: fn(&String) -> bool) -> bool {
+        let value = self
+            .0
+            .iter()
+            .find_map(|pair| if pair.0 == field { Some(&pair.1) } else { None });
+        match value {
+            Some(value) => {
+                return f(value);
+            }
             None => false,
         }
     }
