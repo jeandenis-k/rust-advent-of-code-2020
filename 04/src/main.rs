@@ -25,7 +25,7 @@ fn main() {
                 })
                 .collect::<Vec<_>>();
             println!("{:?}", passport);
-            passports.push(passport);
+            passports.push(Passport(passport));
         } else {
             break;
         }
@@ -35,37 +35,29 @@ fn main() {
         "There are {} valid passwords",
         passports
             .iter()
-            .filter(|passport| is_valid(passport))
+            .filter(|passport| passport.is_valid_1())
             .count()
     );
 }
 
-type Passport = Vec<(String, String)>;
+struct Passport(Vec<(String, String)>);
 
-fn is_valid(passport: &Passport) -> bool {
-    passport.iter().any(|pair| pair.0 == "byr")
-        && passport.iter().any(|pair| pair.0 == "iyr")
-        && passport.iter().any(|pair| pair.0 == "eyr")
-        && passport.iter().any(|pair| pair.0 == "hgt")
-        && passport.iter().any(|pair| pair.0 == "hcl")
-        && passport.iter().any(|pair| pair.0 == "ecl")
-        && passport.iter().any(|pair| pair.0 == "pid")
+impl Passport {
+    fn is_valid_1(self: &Passport) -> bool {
+        self.0.iter().any(|pair| pair.0 == "byr")
+            && self.0.iter().any(|pair| pair.0 == "iyr")
+            && self.0.iter().any(|pair| pair.0 == "eyr")
+            && self.0.iter().any(|pair| pair.0 == "hgt")
+            && self.0.iter().any(|pair| pair.0 == "hcl")
+            && self.0.iter().any(|pair| pair.0 == "ecl")
+            && self.0.iter().any(|pair| pair.0 == "pid")
+    }
+
+    fn valid_byr(self: &Passport) -> bool {
+        let byr = self.0.iter().find(|pair| pair.0 == "byr");
+        match byr {
+            Some(byr) => true,
+            None => false,
+        }
+    }
 }
-
-// while let passport_lines = lines.take_while(|line| line
-
-//     std::io::BufReader::new(file).lines().for_each(|line| {
-//         let line = line.unwrap();
-//         println!("{}", line);
-//     })
-
-// struct Passport {
-//     byr: Option<String>,
-//     iyr: Option<String>,
-//     eyr: Option<String>,
-//     hgt: Option<String>,
-//     hcl: Option<String>,
-//     ecl: Option<String>,
-//     pid: Option<String>,
-//     cid: Option<String>,
-// }
