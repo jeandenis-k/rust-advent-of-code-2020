@@ -6,32 +6,32 @@ fn main() {
     let mut lines = std::io::BufReader::new(file)
         .lines()
         .map(|line| line.unwrap());
-    let mut group_answers = Vec::new();
+    let mut groups = Vec::new();
 
     loop {
-        let mut answers = std::collections::HashSet::new();
         let group_lines = lines
             .by_ref()
             .take_while(|line| line.len() != 0)
             .collect::<Vec<_>>();
-        group_lines.iter().for_each(|line| {
-            line.chars().for_each(|char| {
-                answers.insert(char);
-            })
-        });
 
         if group_lines.len() != 0 {
-            println!("{:?}", answers);
-            group_answers.push(answers);
+            groups.push(group_lines);
         } else {
             break;
         }
     }
 
     println!(
-        "Solution is {}",
-        group_answers
+        "Solution of part 1 is {}",
+        groups
             .iter()
+            .map(|lines| lines.iter().map(|line| {
+                let mut set = std::collections::HashSet::new();
+                line.chars().for_each(|char| {
+                    set.insert(char);
+                });
+                set.len()
+            }))
             .map(|answers| answers.len())
             .sum::<usize>()
     );
