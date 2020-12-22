@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::io::BufRead;
 
 fn main() {
@@ -38,19 +39,13 @@ fn main() {
         groups
             .iter()
             .map(|lines| {
-                let mut tally = std::collections::HashMap::new();
-
-                lines.iter().for_each(|line| {
-                    line.chars().for_each(|char| {
-                        let count = tally.get(&char).cloned();
-                        tally.insert(char, count.map(|count| count + 1).unwrap_or(1));
-                    });
-                });
-
-                tally
+                lines
                     .iter()
-                    .filter(|(_key, count)| **count == lines.len())
-                    .count()
+                    .fold(HashSet::new(), |set, line| {
+                        let line_set = line.chars().collect::<std::collections::HashSet<_>>();
+                        set.intersection(&line_set).cloned().collect()
+                    })
+                    .len()
             })
             .sum::<usize>()
     );
