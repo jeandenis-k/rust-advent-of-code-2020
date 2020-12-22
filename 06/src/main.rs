@@ -35,4 +35,29 @@ fn main() {
             .map(|answers| answers.len())
             .sum::<usize>()
     );
+
+    println!(
+        "Solution of part 2 is {}",
+        groups
+            .iter()
+            .map(|lines| {
+                let mut tally = std::collections::HashMap::new();
+                println!("Lines: {:?}", lines);
+
+                lines.iter().for_each(|line| {
+                    line.chars().for_each(|char| {
+                        let count = tally.get(&char).cloned();
+                        tally.insert(char, count.map(|count| count + 1).unwrap_or(1));
+                    });
+                });
+
+                println!("Group tally: {:?}", tally);
+
+                tally
+                    .iter()
+                    .filter(|(_key, count)| **count == lines.len())
+                    .count()
+            })
+            .sum::<usize>()
+    );
 }
