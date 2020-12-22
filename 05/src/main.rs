@@ -27,6 +27,13 @@ fn main() {
         "Highest seat id is {}",
         seats.iter().map(|seat| seat.id()).max().unwrap()
     );
+
+    let mut plane = Plane::new();
+    seats.iter().for_each(|seat| {
+        plane.tick(seat);
+    });
+    plane.inspect();
+    println!("Seat is... {:?}", plane.find_seat());
 }
 
 fn test_seat() {
@@ -84,5 +91,40 @@ impl Seat {
                 }
             })
             .0
+    }
+}
+
+struct Plane([[bool; 8]; 128]);
+
+impl Plane {
+    fn new() -> Plane {
+        Plane([[false; 8]; 128])
+    }
+
+    fn tick(self: &mut Plane, seat: &Seat) {
+        self.0[seat.row() as usize][seat.col() as usize] = true;
+    }
+
+    fn inspect(self: &Plane) {
+        self.0.iter().enumerate().for_each(|(index, row)| {
+            print!("{}: ", index);
+            row.iter().for_each(|&val| {
+                print!("{}", if val { 'x' } else { '.' });
+            });
+            println!();
+        })
+    }
+
+    fn find_seat(self: &Plane) -> Option<(usize, usize)> {
+        self.0.iter().enumerate().find_map(|(row, columns)| {
+            if row != 0 && row != 127 {
+                columns
+                    .iter()
+                    .enumerate()
+                    .find_map(|(col, cell)| if !cell { Some((row, col)) } else { None })
+            } else {
+                None
+            }
+        })
     }
 }
