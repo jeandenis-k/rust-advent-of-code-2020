@@ -39,28 +39,23 @@ fn main() {
     );
     println!("{:?}", bag_map);
 
-    let mut shiny_map: HashMap<String, bool> = HashMap::new();
     println!(
         "Solution is {}",
         bag_map
             .0
             .keys()
-            .filter(|color| bag_map.color_contains_shiny(&mut shiny_map, color))
+            .filter(|color| bag_map.color_contains_shiny(color))
             .count()
     );
 }
 
 impl BagMap {
-    fn color_contains_shiny(
-        self: &BagMap,
-        shiny_map: &mut HashMap<String, bool>,
-        color: &String,
-    ) -> bool {
+    fn color_contains_shiny(self: &BagMap, color: &String) -> bool {
         let children = self.0.get(color).unwrap();
         let has_direct_shiny_gold = children.iter().any(|(_, color)| color == "shiny gold");
         has_direct_shiny_gold
             || children
                 .iter()
-                .any(|(_, color)| self.color_contains_shiny(shiny_map, color))
+                .any(|(_, color)| self.color_contains_shiny(color))
     }
 }
