@@ -25,14 +25,11 @@ fn main() {
         "Solution of part 1 is {}",
         groups
             .iter()
-            .map(|lines| lines.iter().map(|line| {
-                let mut set = std::collections::HashSet::new();
-                line.chars().for_each(|char| {
-                    set.insert(char);
-                });
-                set.len()
-            }))
-            .map(|answers| answers.len())
+            .map(|lines| lines
+                .iter()
+                .flat_map(|line| line.chars())
+                .collect::<std::collections::HashSet<_>>()
+                .len())
             .sum::<usize>()
     );
 
@@ -42,7 +39,6 @@ fn main() {
             .iter()
             .map(|lines| {
                 let mut tally = std::collections::HashMap::new();
-                println!("Lines: {:?}", lines);
 
                 lines.iter().for_each(|line| {
                     line.chars().for_each(|char| {
@@ -50,8 +46,6 @@ fn main() {
                         tally.insert(char, count.map(|count| count + 1).unwrap_or(1));
                     });
                 });
-
-                println!("Group tally: {:?}", tally);
 
                 tally
                     .iter()
