@@ -47,6 +47,11 @@ fn main() {
             .filter(|color| bag_map.color_contains_shiny(color))
             .count()
     );
+
+    println!(
+        "Solution of part 2 is {}",
+        bag_map.count_contained_bags(&String::from("shiny gold"))
+    );
 }
 
 impl BagMap {
@@ -57,5 +62,13 @@ impl BagMap {
             || children
                 .iter()
                 .any(|(_, color)| self.color_contains_shiny(color))
+    }
+
+    fn count_contained_bags(self: &BagMap, color: &String) -> usize {
+        let children = self.0.get(color).unwrap();
+        children
+            .iter()
+            .map(|(count, color)| count + count * self.count_contained_bags(color))
+            .sum()
     }
 }
