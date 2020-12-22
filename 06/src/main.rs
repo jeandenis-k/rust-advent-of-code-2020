@@ -6,6 +6,7 @@ fn main() {
     let mut lines = std::io::BufReader::new(file)
         .lines()
         .map(|line| line.unwrap());
+    let mut tallies: Vec<_> = Vec::new();
 
     loop {
         let mut answers = std::collections::HashSet::new();
@@ -20,9 +21,12 @@ fn main() {
         });
 
         if group_lines.len() != 0 {
-            println!("{:?}", answers.len());
+            println!("{:?}", answers);
+            tallies.push(answers.len());
         } else {
             break;
         }
     }
+
+    println!("Solution is {}", tallies.iter().sum::<usize>());
 }
