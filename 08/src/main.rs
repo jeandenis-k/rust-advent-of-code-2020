@@ -3,8 +3,13 @@ use std::io::BufRead;
 use std::io::{self};
 
 #[derive(Debug)]
-struct Console {
+struct ConsoleProgram {
     instructions: Vec<(String, i32)>, // nop, acc or jmp
+}
+
+#[derive(Debug)]
+struct ConsoleInterpreter<'a> {
+    program: &'a ConsoleProgram,
     instructions_executed: HashSet<i32>,
     program_counter: i32,
     accumulator: i32,
@@ -23,14 +28,18 @@ fn main() {
         .collect();
     println!("{:?}", instructions);
 
-    let console = Console::new(instructions);
-    println!("{:?}", console.last());
+    let program = ConsoleProgram::new(instructions);
+    println!("{:?}", program.iter().last());
 }
 
-impl Console {
-    fn new(instructions: Vec<(String, i32)>) -> Console {
-        Console {
-            instructions,
+impl ConsoleProgram {
+    fn new(instructions: Vec<(String, i32)>) -> ConsoleProgram {
+        ConsoleProgram { instructions }
+    }
+
+    fn iter(self: &ConsoleProgram) -> ConsoleInterpreter {
+        ConsoleInterpreter {
+            program: self,
             instructions_executed: HashSet::new(),
             program_counter: 0,
             accumulator: 0,
@@ -38,15 +47,16 @@ impl Console {
     }
 }
 
-impl Iterator for Console {
-    type Item = i32;
+impl Iterator for ConsoleInterpreter<'_> {
+    type Item = (i32, bool);
 
-    fn next(&mut self) -> Option<i32> {
+    fn next(&mut self) -> Option<(i32, bool)> {
         if self.instructions_executed.contains(&self.program_counter) {
             return None;
         }
 
-        let instruction = &self.instructions[self.program_counter as usize];
+        let instruction = &self.program.instructions[self.program_counter as usize];
+        let terminates = self.program_counter == self.program.instructions.len() as i32 - 1;
         self.instructions_executed.insert(self.program_counter);
 
         self.accumulator = if instruction.0 == "acc" {
@@ -63,6 +73,6 @@ impl Iterator for Console {
             self.program_counter + 1
         };
 
-        Some(self.accumulator)
+        Some((self.accumulator, terminates))
     }
 }
