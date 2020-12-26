@@ -1,16 +1,18 @@
 use std::collections::HashSet;
 use std::io::BufRead;
 use std::io::{self};
+#[macro_use]
+extern crate lazy_static;
 
 #[derive(Debug)]
-struct ConsoleProgram {
-    instructions: Vec<(String, i32)>, // nop, acc or jmp
+struct ConsoleProgram<'a> {
+    instructions: &'a Vec<(String, i32)>, // nop, acc or jmp
     flipped_instruction: Option<(i32, (String, i32))>,
 }
 
 #[derive(Debug)]
 struct ConsoleInterpreter<'a> {
-    program: &'a ConsoleProgram,
+    program: &'a ConsoleProgram<'a>,
     instructions_executed: HashSet<i32>,
     program_counter: i32,
     accumulator: i32,
@@ -29,7 +31,7 @@ fn main() {
         .collect();
     println!("{:?}", instructions);
 
-    let program = ConsoleProgram::new(instructions);
+    let program = ConsoleProgram::new(&instructions);
     println!("Part 1: {:?}", program.iter().last());
 
     let fixed_program = program
@@ -54,19 +56,19 @@ fn main() {
     println!("Part 2: {:?}", fixed_program)
 }
 
-impl ConsoleProgram {
-    fn new(instructions: Vec<(String, i32)>) -> ConsoleProgram {
+impl<'a> ConsoleProgram<'a> {
+    fn new(instructions: &Vec<(String, i32)>) -> ConsoleProgram {
         ConsoleProgram {
-            instructions,
+            instructions: &instructions,
             flipped_instruction: None,
         }
     }
 
-    fn run(self: &ConsoleProgram) -> (i32, bool) {
+    fn run(self: &ConsoleProgram<'a>) -> (i32, bool) {
         self.iter().last().unwrap()
     }
 
-    fn flip_instruction(self: &ConsoleProgram, index: i32) -> ConsoleProgram {
+    fn flip_instruction(self: &ConsoleProgram<'a>, index: i32) -> ConsoleProgram {
         let instruction = &self.instructions[index as usize];
         let flipped_instruction = if instruction.0 == "nop" {
             (index, ("jmp".to_string(), instruction.1))
@@ -74,12 +76,12 @@ impl ConsoleProgram {
             (index, ("nop".to_string(), instruction.1))
         };
         ConsoleProgram {
-            instructions: self.instructions.clone(),
+            instructions: self.instructions,
             flipped_instruction: Some(flipped_instruction),
         }
     }
 
-    fn iter(self: &ConsoleProgram) -> ConsoleInterpreter {
+    fn iter(self: &ConsoleProgram<'a>) -> ConsoleInterpreter {
         ConsoleInterpreter {
             program: self,
             instructions_executed: HashSet::new(),
@@ -136,18 +138,24 @@ impl Iterator for ConsoleInterpreter<'_> {
 mod tests {
     use super::*;
 
-    fn example_program() -> ConsoleProgram {
-        ConsoleProgram::new(vec![
-            ("nop".to_string(), 0),
-            ("acc".to_string(), 1),
-            ("jmp".to_string(), 4),
-            ("acc".to_string(), 3),
-            ("jmp".to_string(), 3),
-            ("acc".to_string(), -99),
-            ("acc".to_string(), 1),
-            ("jmp".to_string(), -4),
-            ("acc".to_string(), 6),
-        ])
+    lazy_static! {
+        static ref EXAMPLE_INSTRUCTIONS: Vec<(String, i32)> = {
+            vec![
+                ("nop".to_string(), 0),
+                ("acc".to_string(), 1),
+                ("jmp".to_string(), 4),
+                ("acc".to_string(), 3),
+                ("jmp".to_string(), 3),
+                ("acc".to_string(), -99),
+                ("acc".to_string(), 1),
+                ("jmp".to_string(), -4),
+                ("acc".to_string(), 6),
+            ]
+        };
+    }
+
+    fn example_program<'a>() -> ConsoleProgram<'a> {
+        ConsoleProgram::new(&EXAMPLE_INSTRUCTIONS)
     }
 
     #[test]
