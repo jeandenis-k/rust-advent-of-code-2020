@@ -42,14 +42,12 @@ fn generate_valid_sums(preamble: &[i64]) -> HashSet<i64> {
 
 fn find_contiguous_numbers_adding_up_to_step1(numbers: &Vec<i64>, step1: i64) -> Option<Vec<i64>> {
     numbers.iter().enumerate().find_map(|(index, n)| {
-        println!("Testing starting from  {}", n);
         let mut sum = *n;
         let contiguous_chain: Vec<_> = numbers[index + 1..]
             .iter()
             .cloned()
             .take_while(|n2| {
                 sum = sum + *n2;
-                println!("Sum is now {}", sum);
                 sum < step1
             })
             .collect();
