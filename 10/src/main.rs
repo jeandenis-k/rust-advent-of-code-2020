@@ -17,14 +17,11 @@ fn main() {
         .iter()
         .zip(lines_minus_first)
         .map(|(i1, i2)| i2 - i1)
-        .inspect(|diff| println!("{}", diff))
+        // .inspect(|diff| println!("{}", diff))
         .fold(reduce((0, 0), first), reduce);
     println!("{:?}", (d1, d3 + 1));
     println!("Solution of part 1 is {}", d1 * (d3 + 1));
-    println!(
-        "Solution of part 2 is {}",
-        count_arrangements(&lines, lines[0])
-    );
+    println!("Solution of part 2 is {}", count_arrangements(&lines));
 }
 
 fn reduce((d1, d3): (i32, i32), d: i32) -> (i32, i32) {
@@ -35,20 +32,24 @@ fn reduce((d1, d3): (i32, i32), d: i32) -> (i32, i32) {
     }
 }
 
-fn count_arrangements(numbers: &[i32], n1: i32) -> i32 {
-    println!("n={}, numbers={:?}", n1, numbers);
-    if numbers.len() == 1 {
-        1
-    } else {
-        return numbers[1..]
-            .iter()
-            .enumerate()
-            .take_while(|(_, n2)| (**n2 - n1) <= 3)
-            .inspect(|(i, n)| println!("{:?}", (&numbers[*i + 1..], *n)))
-            .map(|(index, n)| count_arrangements(&numbers[index + 1..], *n))
-            // .map(|(index, n)| 1)
-            .sum();
+fn count_arrangements(numbers: &[i32]) -> i32 {
+    fn rec_count_arrangements(numbers: &[i32], n1: i32) -> i32 {
+        println!(
+            "Counting arrangements starting from {} with numbers: {:?}",
+            n1, numbers
+        );
+        if numbers.len() == 1 {
+            1
+        } else {
+            return numbers[1..]
+                .iter()
+                .enumerate()
+                .take_while(|(_, n2)| (**n2 - n1) <= 3)
+                .map(|(index, n)| rec_count_arrangements(&numbers[index + 1..], *n))
+                .sum();
+        }
     }
+    rec_count_arrangements(numbers, numbers[0])
 }
 
 #[cfg(test)]
@@ -68,13 +69,17 @@ mod tests {
             .collect();
         numbers.sort();
         println!("{:?}", numbers);
-        assert_eq!(count_arrangements(&numbers, numbers[0]), 8);
+        assert_eq!(count_arrangements(&numbers), 8);
     }
 
     #[test]
     fn test_count_arrangements_on_simple_example() {
         let numbers: Vec<_> = vec![1, 2, 4, 5];
         println!("{:?}", numbers);
-        assert_eq!(count_arrangements(&numbers, numbers[0]), 3);
+        assert_eq!(count_arrangements(&numbers), 3);
+
+        let numbers: Vec<_> = vec![1, 2, 4, 7];
+        println!("{:?}", numbers);
+        assert_eq!(count_arrangements(&numbers), 2);
     }
 }
