@@ -33,24 +33,20 @@ fn reduce((d1, d3): (i32, i32), d: i32) -> (i32, i32) {
 }
 
 fn count_arrangements(numbers: &[i32]) -> i32 {
-    fn rec_count_arrangements(numbers: &[i32], slice: &[i32], index: usize) -> i32 {
+    fn rec_count_arrangements(numbers: &[i32], index: usize) -> i32 {
         let n1 = numbers[index];
-        println!(
-            "Counting arrangements starting from {} with numbers: {:?}",
-            n1, slice
-        );
-        if slice.len() == 1 {
+        if index == numbers.len() - 1 {
             1
         } else {
-            return slice[1..]
+            return numbers[index + 1..]
                 .iter()
                 .enumerate()
                 .take_while(|(_, n2)| (**n2 - n1) <= 3)
-                .map(|(i, _)| rec_count_arrangements(&numbers, &slice[i + 1..], index + i + 1))
+                .map(|(i, _)| rec_count_arrangements(&numbers, i + index + 1))
                 .sum();
         }
     }
-    rec_count_arrangements(numbers, numbers, 0)
+    rec_count_arrangements(numbers, 0)
 }
 
 #[cfg(test)]
