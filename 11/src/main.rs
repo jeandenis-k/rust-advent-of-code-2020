@@ -78,10 +78,21 @@ impl WaitingArea {
         i: usize,
         j: usize,
         dir: Direction,
-    ) -> impl Iterator<Item = u8> + 'a {
+    ) -> Box<dyn Iterator<Item = u8> + 'a> {
         let width = self.cells[0].len();
+        let height = self.cells.len();
         match dir {
-            E => (j + 1..width).into_iter().map(move |j| self.get(i, j)),
+            Direction::E => Box::new((j + 1..width).into_iter().map(move |j| self.get(i, j))),
+            Direction::Ne => Box::new(
+                (0..=i - 1)
+                    .into_iter()
+                    .rev()
+                    .zip((j + 1..width).into_iter())
+                    .map(move |(i, j)| self.get(i, j)),
+            ),
+            _ => {
+                panic!("ARG")
+            }
         }
     }
 }
@@ -156,5 +167,9 @@ mod tests {
             area.visible_cells(4, 3, Direction::E).collect::<Vec<_>>(),
             "....#".as_bytes()
         );
+        assert_eq!(
+            area.visible_cells(4, 3, Direction::Ne).collect::<Vec<_>>(),
+            "...#".as_bytes()
+        )
     }
 }
