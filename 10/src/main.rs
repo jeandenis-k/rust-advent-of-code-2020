@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::io::BufRead;
 use std::io::{self};
 
@@ -33,20 +34,29 @@ fn reduce((d1, d3): (i32, i32), d: i32) -> (i32, i32) {
 }
 
 fn count_arrangements(numbers: &[i32]) -> i32 {
-    fn rec_count_arrangements(numbers: &[i32], index: usize) -> i32 {
+    fn rec_count_arrangements(map: &mut HashMap<usize, i32>, numbers: &[i32], index: usize) -> i32 {
         let n1 = numbers[index];
         if index == numbers.len() - 1 {
             1
         } else {
-            return numbers[index + 1..]
-                .iter()
-                .enumerate()
-                .take_while(|(_, n2)| (**n2 - n1) <= 3)
-                .map(|(i, _)| rec_count_arrangements(&numbers, i + index + 1))
-                .sum();
+            let count = map.get(&index);
+            match count {
+                Some(count) => *count,
+                None => {
+                    let count = numbers[index + 1..]
+                        .iter()
+                        .enumerate()
+                        .take_while(|(_, n2)| (**n2 - n1) <= 3)
+                        .map(|(i, _)| rec_count_arrangements(map, &numbers, i + index + 1))
+                        .sum();
+                    map.insert(index, count);
+                    count
+                }
+            }
         }
     }
-    rec_count_arrangements(numbers, 0)
+    let mut map: HashMap<usize, i32> = HashMap::new();
+    rec_count_arrangements(&mut map, numbers, 0)
 }
 
 #[cfg(test)]
