@@ -62,14 +62,16 @@ fn adjacent_cells<'a>(cells: &'a Vec<String>, width: usize, i: usize, j: usize) 
     lines
         .iter()
         .flat_map(|line| cols.iter().map(move |col| (*line, *col)))
-        .filter(|(i, j)| {
-            *i >= 0 && *i < width as isize && *j >= 0 && *j < cells.len() as isize && *i != *j
+        .filter(|(k, l)| {
+            (*k, *l) != (i, j)
+                && *k >= 0
+                && *k < width as isize
+                && *l >= 0
+                && *l < cells.len() as isize
         })
-        .filter_map(|(i, j)| {
+        .map(|(i, j)| {
             dbg!(i, j);
-            cells
-                .get(i as usize)
-                .and_then(|line| line.as_bytes().get(j as usize).map(|c| *c))
+            cells[i as usize].as_bytes()[j as usize]
         })
         .collect()
 }
@@ -82,6 +84,6 @@ mod tests {
     fn test_adjacent_cells() {
         let area_string = include_str!("../input_example");
         let area = WaitingArea::new(area_string.lines().map(|line| line.to_string()));
-        assert_eq!(adjacent_cells(&area.cells, 10, 0, 9), [b'a'])
+        assert_eq!(adjacent_cells(&area.cells, 10, 0, 9), [b'L', b'L', b'L'])
     }
 }
