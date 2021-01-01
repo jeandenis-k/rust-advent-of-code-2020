@@ -10,10 +10,8 @@ struct WaitingArea {
 fn main() {
     let stdin = io::stdin();
     let handle = stdin.lock();
-    let mut area = WaitingArea::new(handle.lines().filter_map(Result::ok));
-    let next = area.next();
-    dbg!(area);
-    dbg!(next);
+    let area = WaitingArea::new(handle.lines().filter_map(Result::ok));
+    dbg!(area.take(10).map(|(old, _new)| old).collect::<Vec<_>>());
 }
 
 impl WaitingArea {
@@ -33,10 +31,20 @@ impl Iterator for WaitingArea {
             unsafe {
                 for (j, cell) in line.as_bytes_mut().iter_mut().enumerate() {
                     if *cell == b'L' {
-                        let no_occupied_seats: bool =
-                            adjacent_cells(&old, i, j).iter().all(|c| *c != b'#');
-                        if no_occupied_seats {
+                        let no_adjacent_occupied_seats: bool =
+                            adjacent_cells(&old, self.width, i, j)
+                                .iter()
+                                .all(|c| *c != b'#');
+                        if no_adjacent_occupied_seats {
                             *cell = b'#';
+                        }
+                    } else if *cell == b'#' {
+                        let adjacent_occupied_count = adjacent_cells(&old, self.width, i, j)
+                            .iter()
+                            .filter(|c| **c == b'#')
+                            .count();
+                        if adjacent_occupied_count >= 4 {
+                            *cell = b'L';
                         }
                     }
                 }
@@ -46,25 +54,34 @@ impl Iterator for WaitingArea {
     }
 }
 
-fn adjacent_cells<'a>(cells: &'a Vec<String>, i: usize, j: usize) -> Vec<u8> {
-    let lines = if i == 0 {
-        vec![0, 1]
-    } else {
-        vec![i - 1, i, i + 1]
-    };
-    let cols = if j == 0 {
-        vec![0, 1]
-    } else {
-        vec![j - 1, j, j + 1]
-    };
+fn adjacent_cells<'a>(cells: &'a Vec<String>, width: usize, i: usize, j: usize) -> Vec<u8> {
+    let i = i as isize;
+    let j = j as isize;
+    let lines: Vec<isize> = vec![i - 1, i, i + 1];
+    let cols: Vec<isize> = vec![j - 1, j, j + 1];
     lines
         .iter()
         .flat_map(|line| cols.iter().map(move |col| (*line, *col)))
-        .filter(|(i, j)| i != j)
+        .filter(|(i, j)| {
+            *i >= 0 && *i < width as isize && *j >= 0 && *j < cells.len() as isize && *i != *j
+        })
         .filter_map(|(i, j)| {
+            dbg!(i, j);
             cells
-                .get(i)
-                .and_then(|line| line.as_bytes().get(j).map(|c| *c))
+                .get(i as usize)
+                .and_then(|line| line.as_bytes().get(j as usize).map(|c| *c))
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_adjacent_cells() {
+        let area_string = include_str!("../input_example");
+        let area = WaitingArea::new(area_string.lines().map(|line| line.to_string()));
+        assert_eq!(adjacent_cells(&area.cells, 10, 0, 9), [b'a'])
+    }
 }
