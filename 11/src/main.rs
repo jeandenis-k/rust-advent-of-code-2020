@@ -17,7 +17,7 @@ fn main() {
     let mut area = WaitingArea::new(handle.lines().filter_map(Result::ok));
     println!(
         "Solution of part 1 is {}",
-        area.occupied_seat_count_on_fixed_configuration(),
+        area.iter_part1().find_map(|option| option).unwrap(),
     )
 }
 
@@ -29,10 +29,6 @@ impl WaitingArea {
 
     fn iter_part1(self: &mut WaitingArea) -> Part1Iter {
         Part1Iter { area: self }
-    }
-
-    fn occupied_seat_count_on_fixed_configuration(self: &mut WaitingArea) -> usize {
-        self.iter_part1().find_map(|option| option).unwrap()
     }
 
     fn occupied_seat_count(self: &WaitingArea) -> usize {
