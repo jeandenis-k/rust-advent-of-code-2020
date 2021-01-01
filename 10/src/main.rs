@@ -33,8 +33,8 @@ fn reduce((d1, d3): (i32, i32), d: i32) -> (i32, i32) {
     }
 }
 
-fn count_arrangements(numbers: &[i32]) -> i32 {
-    fn rec_count_arrangements(map: &mut HashMap<usize, i32>, numbers: &[i32], index: usize) -> i32 {
+fn count_arrangements(numbers: &[i32]) -> i64 {
+    fn rec_count_arrangements(map: &mut HashMap<usize, i64>, numbers: &[i32], index: usize) -> i64 {
         let n1 = numbers[index];
         if index == numbers.len() - 1 {
             1
@@ -55,8 +55,10 @@ fn count_arrangements(numbers: &[i32]) -> i32 {
             }
         }
     }
-    let mut map: HashMap<usize, i32> = HashMap::new();
-    rec_count_arrangements(&mut map, numbers, 0)
+    let mut map: HashMap<usize, i64> = HashMap::new();
+    let result = rec_count_arrangements(&mut map, numbers, 0);
+    println!("{:?}", map);
+    result
 }
 
 #[cfg(test)]
@@ -88,5 +90,9 @@ mod tests {
         let numbers: Vec<_> = vec![1, 2, 4, 7];
         println!("{:?}", numbers);
         assert_eq!(count_arrangements(&numbers), 2);
+
+        let numbers: Vec<_> = vec![1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 17, 18];
+        println!("{:?}", numbers);
+        assert_eq!(count_arrangements(&numbers), 33);
     }
 }
