@@ -6,6 +6,11 @@ struct WaitingArea {
     cells: Vec<String>,
 }
 
+#[derive(Debug, PartialEq)]
+struct Part1Iter<'a> {
+    area: &'a mut WaitingArea,
+}
+
 fn main() {
     let stdin = io::stdin();
     let handle = stdin.lock();
@@ -22,8 +27,12 @@ impl WaitingArea {
         WaitingArea { cells }
     }
 
+    fn iter_part1(self: &mut WaitingArea) -> Part1Iter {
+        Part1Iter { area: self }
+    }
+
     fn occupied_seat_count_on_fixed_configuration(self: &mut WaitingArea) -> usize {
-        self.find_map(|option| option).unwrap()
+        self.iter_part1().find_map(|option| option).unwrap()
     }
 
     fn occupied_seat_count(self: &WaitingArea) -> usize {
@@ -34,14 +43,14 @@ impl WaitingArea {
     }
 }
 
-impl Iterator for WaitingArea {
+impl<'a> Iterator for Part1Iter<'a> {
     type Item = Option<usize>;
 
-    fn next(self: &mut WaitingArea) -> Option<Self::Item> {
-        let old = self.clone();
+    fn next(self: &mut Part1Iter<'a>) -> Option<Self::Item> {
+        let old = self.area.clone();
         let mut did_update = false;
 
-        for (i, line) in self.cells.iter_mut().enumerate() {
+        for (i, line) in self.area.cells.iter_mut().enumerate() {
             unsafe {
                 for (j, cell) in line.as_bytes_mut().iter_mut().enumerate() {
                     if *cell == b'L' {
@@ -68,7 +77,7 @@ impl Iterator for WaitingArea {
         if did_update {
             Some(None)
         } else {
-            Some(Some(self.occupied_seat_count()))
+            Some(Some(self.area.occupied_seat_count()))
         }
     }
 }
