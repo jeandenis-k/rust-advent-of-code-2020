@@ -35,7 +35,11 @@ fn main() {
     println!(
         "Solution of part 1 is {}",
         area.iter_part1().find_map(|option| option).unwrap(),
-    )
+    );
+    println!(
+        "Solution of part 2 is {}",
+        area.iter_part2().find_map(|option| option).unwrap(),
+    );
 }
 
 impl WaitingArea {
@@ -243,13 +247,7 @@ mod tests {
             ...#.....
         "#};
 
-    fn parse_example(str: &str) -> WaitingArea {
-        WaitingArea::new(str.lines().map(|line| line.to_string()))
-    }
-
-    #[test]
-    fn test_next_with_part1_rules() {
-        let mut area = parse_example(indoc! {"
+    static SIMPLE_AREA: &str = indoc! {"
             L.LL.LL.LL
             LLLLLLL.LL
             L.L.L..L..
@@ -260,7 +258,15 @@ mod tests {
             LLLLLLLLLL
             L.LLLLLL.L
             L.LLLLL.LL
-        "});
+        "};
+
+    fn parse_example(str: &str) -> WaitingArea {
+        WaitingArea::new(str.lines().map(|line| line.to_string()))
+    }
+
+    #[test]
+    fn test_next_with_part1_rules() {
+        let mut area = parse_example(SIMPLE_AREA);
         area.iter_part1().next();
         assert_eq!(
             area.cells,
@@ -281,19 +287,9 @@ mod tests {
 
     #[test]
     fn test_next_with_part2_rules() {
-        let mut area = parse_example(indoc! {"
-            L.LL.LL.LL
-            LLLLLLL.LL
-            L.L.L..L..
-            LLLL.LL.LL
-            L.LL.LL.LL
-            L.LLLLL.LL
-            ..L.L.....
-            LLLLLLLLLL
-            L.LLLLLL.L
-            L.LLLLL.LL
-        "});
-        area.iter_part2().next();
+        let mut area = parse_example(SIMPLE_AREA);
+        let mut iter = area.iter_part2();
+        iter.next();
         assert_eq!(
             area.cells,
             vec![
@@ -308,7 +304,24 @@ mod tests {
                 "#.######.#",
                 "#.#####.##",
             ]
-        )
+        );
+        // iter.next();
+        // let cells = &area.cells;
+        // assert_eq!(
+        //     *cells,
+        //     vec![
+        //         "#.LL.LL.L#",
+        //         "#LLLLLL.LL",
+        //         "L.L.L..L..",
+        //         "LLLL.LL.LL",
+        //         "L.LL.LL.LL",
+        //         "L.LLLLL.LL",
+        //         "..L.L.....",
+        //         "LLLLLLLLL#",
+        //         "#.LLLLLL.L",
+        //         "#.LLLLL.L#",
+        //     ]
+        // );
     }
 
     #[test]
