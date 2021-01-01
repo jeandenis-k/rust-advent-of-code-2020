@@ -18,7 +18,6 @@ fn main() {
         .iter()
         .zip(lines_minus_first)
         .map(|(i1, i2)| i2 - i1)
-        // .inspect(|diff| println!("{}", diff))
         .fold(reduce((0, 0), first), reduce);
     println!("{:?}", (d1, d3 + 1));
     println!("Solution of part 1 is {}", d1 * (d3 + 1));
@@ -45,8 +44,7 @@ fn count_arrangements(numbers: &[i32]) -> i64 {
         if index == numbers.len() - 1 {
             1
         } else {
-            let count = map.get(&n1);
-            match count {
+            match map.get(&n1) {
                 Some(count) => *count,
                 None => {
                     let count = numbers[index + 1..]
@@ -61,6 +59,7 @@ fn count_arrangements(numbers: &[i32]) -> i64 {
             }
         }
     }
+
     let mut map: HashMap<i32, i64> = HashMap::new();
     let result = rec_count_arrangements(&mut map, numbers, 0);
     println!(
