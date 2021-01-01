@@ -22,7 +22,13 @@ fn main() {
         .fold(reduce((0, 0), first), reduce);
     println!("{:?}", (d1, d3 + 1));
     println!("Solution of part 1 is {}", d1 * (d3 + 1));
-    println!("Solution of part 2 is {}", count_arrangements(&lines));
+
+    let mut lines_with_zero = vec![0];
+    lines_with_zero.extend(lines);
+    println!(
+        "Solution of part 2 is {}",
+        count_arrangements(&lines_with_zero)
+    );
 }
 
 fn reduce((d1, d3): (i32, i32), d: i32) -> (i32, i32) {
@@ -34,12 +40,12 @@ fn reduce((d1, d3): (i32, i32), d: i32) -> (i32, i32) {
 }
 
 fn count_arrangements(numbers: &[i32]) -> i64 {
-    fn rec_count_arrangements(map: &mut HashMap<usize, i64>, numbers: &[i32], index: usize) -> i64 {
+    fn rec_count_arrangements(map: &mut HashMap<i32, i64>, numbers: &[i32], index: usize) -> i64 {
         let n1 = numbers[index];
         if index == numbers.len() - 1 {
             1
         } else {
-            let count = map.get(&index);
+            let count = map.get(&n1);
             match count {
                 Some(count) => *count,
                 None => {
@@ -49,15 +55,21 @@ fn count_arrangements(numbers: &[i32]) -> i64 {
                         .take_while(|(_, n2)| (**n2 - n1) <= 3)
                         .map(|(i, _)| rec_count_arrangements(map, &numbers, i + index + 1))
                         .sum();
-                    map.insert(index, count);
+                    map.insert(n1, count);
                     count
                 }
             }
         }
     }
-    let mut map: HashMap<usize, i64> = HashMap::new();
+    let mut map: HashMap<i32, i64> = HashMap::new();
     let result = rec_count_arrangements(&mut map, numbers, 0);
-    println!("{:?}", map);
+    println!(
+        "{:?}",
+        numbers
+            .iter()
+            .map(|n| (n, map.get(n).unwrap_or(&0)))
+            .collect::<Vec<_>>()
+    );
     result
 }
 
@@ -70,15 +82,16 @@ mod tests {
 
     #[test]
     fn test_count_arrangements_on_example1() {
-        let file = File::open("./input_example1").unwrap();
-        let mut numbers: Vec<_> = BufReader::new(file)
-            .lines()
-            .filter_map(Result::ok)
-            .map(|line| line.parse::<i32>().unwrap())
-            .collect();
-        numbers.sort();
+        let numbers = read_example_file("./input_example1");
         println!("{:?}", numbers);
         assert_eq!(count_arrangements(&numbers), 8);
+    }
+
+    #[test]
+    fn test_count_arrangements_on_example2() {
+        let numbers = read_example_file("./input_example2");
+        println!("{:?}", numbers);
+        assert_eq!(count_arrangements(&numbers), 19208);
     }
 
     #[test]
@@ -93,6 +106,19 @@ mod tests {
 
         let numbers: Vec<_> = vec![1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 17, 18];
         println!("{:?}", numbers);
-        assert_eq!(count_arrangements(&numbers), 33);
+        assert_eq!(count_arrangements(&numbers), 28);
+    }
+
+    fn read_example_file(path: &str) -> Vec<i32> {
+        let file = File::open(path).unwrap();
+        let mut numbers = vec![0];
+        numbers.extend(
+            BufReader::new(file)
+                .lines()
+                .filter_map(Result::ok)
+                .map(|line| line.parse::<i32>().unwrap()),
+        );
+        numbers.sort();
+        numbers
     }
 }
