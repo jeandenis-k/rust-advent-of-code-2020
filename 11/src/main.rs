@@ -73,7 +73,19 @@ impl WaitingArea {
             .collect()
     }
 
-    fn visible_cells<'a>(
+    fn visible_cells<'a>(self: &'a WaitingArea, i: usize, j: usize) -> Vec<u8> {
+        use Direction::*;
+        [N, Ne, E, Se, S, Sw, W, Nw]
+            .iter()
+            .by_ref()
+            .filter_map(|dir| {
+                self.visible_cells_in_direction(i, j, *dir)
+                    .find(|c| *c != b'.')
+            })
+            .collect()
+    }
+
+    fn visible_cells_in_direction<'a>(
         self: &'a WaitingArea,
         i: usize,
         j: usize,
@@ -218,36 +230,45 @@ mod tests {
     #[test]
     fn test_visible_cells_in_direction() {
         let area = parse_example(AREA_EXAMPLE);
+        assert_eq!(area.visible_cells(4, 3), "########".as_bytes());
         assert_eq!(
-            area.visible_cells(4, 3, Direction::E).collect::<Vec<_>>(),
+            area.visible_cells_in_direction(4, 3, Direction::E)
+                .collect::<Vec<_>>(),
             "....#".as_bytes()
         );
         assert_eq!(
-            area.visible_cells(4, 3, Direction::Ne).collect::<Vec<_>>(),
+            area.visible_cells_in_direction(4, 3, Direction::Ne)
+                .collect::<Vec<_>>(),
             "...#".as_bytes()
         );
         assert_eq!(
-            area.visible_cells(4, 3, Direction::N).collect::<Vec<_>>(),
+            area.visible_cells_in_direction(4, 3, Direction::N)
+                .collect::<Vec<_>>(),
             "..#.".as_bytes()
         );
         assert_eq!(
-            area.visible_cells(4, 3, Direction::Nw).collect::<Vec<_>>(),
+            area.visible_cells_in_direction(4, 3, Direction::Nw)
+                .collect::<Vec<_>>(),
             ".#.".as_bytes()
         );
         assert_eq!(
-            area.visible_cells(4, 3, Direction::W).collect::<Vec<_>>(),
+            area.visible_cells_in_direction(4, 3, Direction::W)
+                .collect::<Vec<_>>(),
             "#..".as_bytes()
         );
         assert_eq!(
-            area.visible_cells(4, 3, Direction::Sw).collect::<Vec<_>>(),
+            area.visible_cells_in_direction(4, 3, Direction::Sw)
+                .collect::<Vec<_>>(),
             "..#".as_bytes()
         );
         assert_eq!(
-            area.visible_cells(4, 3, Direction::S).collect::<Vec<_>>(),
+            area.visible_cells_in_direction(4, 3, Direction::S)
+                .collect::<Vec<_>>(),
             "...#".as_bytes()
         );
         assert_eq!(
-            area.visible_cells(4, 3, Direction::Se).collect::<Vec<_>>(),
+            area.visible_cells_in_direction(4, 3, Direction::Se)
+                .collect::<Vec<_>>(),
             "#...".as_bytes()
         );
     }
