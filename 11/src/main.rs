@@ -179,9 +179,13 @@ mod tests {
             ...#.....
         "#};
 
+    fn area_example() -> WaitingArea {
+        WaitingArea::new(AREA_EXAMPLE.lines().map(|line| line.to_string()))
+    }
+
     #[test]
     fn test_visible_cells_in_direction() {
-        let area = WaitingArea::new(AREA_EXAMPLE.lines().map(|line| line.to_string()));
+        let area = area_example();
         assert_eq!(
             area.visible_cells(4, 3, Direction::E).collect::<Vec<_>>(),
             "....#".as_bytes()
