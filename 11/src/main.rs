@@ -31,14 +31,18 @@ enum Direction {
 fn main() {
     let stdin = io::stdin();
     let handle = stdin.lock();
-    let mut area = WaitingArea::new(handle.lines().filter_map(Result::ok));
+    let area = WaitingArea::new(handle.lines().filter_map(Result::ok));
+    let mut area1 = area.clone();
+    let mut area2 = area.clone();
+
     println!(
         "Solution of part 1 is {}",
-        area.iter_part1().find_map(|option| option).unwrap(),
+        area1.iter_part1().find_map(|option| option).unwrap(),
     );
+
     println!(
         "Solution of part 2 is {}",
-        area.iter_part2().find_map(|option| option).unwrap(),
+        area2.iter_part2().find_map(|option| option).unwrap(),
     );
 }
 
@@ -105,39 +109,83 @@ impl WaitingArea {
         j: usize,
         dir: Direction,
     ) -> Box<dyn Iterator<Item = u8> + 'a> {
-        let width = self.cells[0].len();
-        let height = self.cells.len();
-        let nord_lines = if i == 0 { 0..=0 } else { 0..=i - 1 };
-        let west_lines = if j == 0 { 0..=0 } else { 0..=j - 1 };
+        let width = self.cells[0].len() as isize;
+        let height = self.cells.len() as isize;
+        let i = i as isize;
+        let j = j as isize;
+
+        let validate_coords = move |(k, l)| {
+            if (k, l) != (i, j)
+                && k >= 0
+                && k < width as isize
+                && l >= 0
+                && l < self.cells.len() as isize
+            {
+                Some((k as usize, l as usize))
+            } else {
+                None
+            }
+        };
+
         match dir {
-            Direction::E => Box::new((j + 1..width).into_iter().map(move |j| self.get(i, j))),
+            Direction::E => Box::new(
+                (j + 1..width)
+                    .into_iter()
+                    .map(move |j| (i, j))
+                    .filter_map(validate_coords)
+                    .map(move |(k, l)| self.get(k, l)),
+            ),
             Direction::Ne => Box::new(
-                nord_lines
+                { 0..=i - 1 }
                     .into_iter()
                     .rev()
                     .zip((j + 1..width).into_iter())
+                    .filter_map(validate_coords)
                     .map(move |(i, j)| self.get(i, j)),
             ),
-            Direction::N => Box::new(nord_lines.into_iter().rev().map(move |i| self.get(i, j))),
-            Direction::Nw => Box::new(
-                nord_lines
+            Direction::N => Box::new(
+                { 0..=i - 1 }
                     .into_iter()
                     .rev()
-                    .zip(west_lines.into_iter().rev())
+                    .map(move |i| (i, j))
+                    .filter_map(validate_coords)
+                    .map(move |(k, l)| self.get(k, l)),
+            ),
+            Direction::Nw => Box::new(
+                { 0..=i - 1 }
+                    .into_iter()
+                    .rev()
+                    .zip((0..=j - 1).into_iter().rev())
+                    .filter_map(validate_coords)
                     .map(move |(i, j)| self.get(i, j)),
             ),
-            Direction::W => Box::new(west_lines.into_iter().rev().map(move |j| self.get(i, j))),
+            Direction::W => Box::new(
+                (0..=j - 1)
+                    .into_iter()
+                    .rev()
+                    .map(move |l| (i, l))
+                    .filter_map(validate_coords)
+                    .map(move |(k, l)| self.get(k, l)),
+            ),
             Direction::Sw => Box::new(
                 (i + 1..height)
                     .into_iter()
-                    .zip(west_lines.into_iter().rev())
+                    .zip((0..=j - 1).into_iter().rev())
+                    .filter_map(validate_coords)
                     .map(move |(i, j)| self.get(i, j)),
             ),
-            Direction::S => Box::new((i + 1..height).into_iter().map(move |i| self.get(i, j))),
+            Direction::S => Box::new(
+                (i + 1..height)
+                    .into_iter()
+                    .map(move |k| (k, j))
+                    .filter_map(validate_coords)
+                    .map(move |(k, l)| self.get(k, l)),
+            ),
             Direction::Se => Box::new(
                 (i + 1..height)
                     .into_iter()
                     .zip((j + 1..width).into_iter())
+                    .filter_map(validate_coords)
                     .map(move |(i, j)| self.get(i, j)),
             ),
         }
@@ -305,29 +353,38 @@ mod tests {
                 "#.#####.##",
             ]
         );
-        // iter.next();
-        // let cells = &area.cells;
-        // assert_eq!(
-        //     *cells,
-        //     vec![
-        //         "#.LL.LL.L#",
-        //         "#LLLLLL.LL",
-        //         "L.L.L..L..",
-        //         "LLLL.LL.LL",
-        //         "L.LL.LL.LL",
-        //         "L.LLLLL.LL",
-        //         "..L.L.....",
-        //         "LLLLLLLLL#",
-        //         "#.LLLLLL.L",
-        //         "#.LLLLL.L#",
-        //     ]
-        // );
+        assert_eq!(area.visible_cells(0, 0), "###".as_bytes());
+    }
+
+    #[test]
+    fn test_next_2_with_part2_rules() {
+        let mut area = parse_example(SIMPLE_AREA);
+        let mut iter = area.iter_part2();
+        iter.next();
+        iter.next();
+        assert_eq!(
+            area.cells,
+            vec![
+                "#.LL.LL.L#",
+                "#LLLLLL.LL",
+                "L.L.L..L..",
+                "LLLL.LL.LL",
+                "L.LL.LL.LL",
+                "L.LLLLL.LL",
+                "..L.L.....",
+                "LLLLLLLLL#",
+                "#.LLLLLL.L",
+                "#.LLLLL.L#",
+            ]
+        );
     }
 
     #[test]
     fn test_visible_cells_in_direction() {
         let area = parse_example(AREA_EXAMPLE);
         assert_eq!(area.visible_cells(4, 3), "########".as_bytes());
+        assert_eq!(area.visible_cells(0, 0), "##".as_bytes());
+
         assert_eq!(
             area.visible_cells_in_direction(4, 3, Direction::E)
                 .collect::<Vec<_>>(),
