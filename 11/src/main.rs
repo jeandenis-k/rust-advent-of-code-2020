@@ -11,6 +11,17 @@ struct Part1Iter<'a> {
     area: &'a mut WaitingArea,
 }
 
+enum Direction {
+    N,
+    Ne,
+    E,
+    Se,
+    S,
+    Sw,
+    W,
+    Nw,
+}
+
 fn main() {
     let stdin = io::stdin();
     let handle = stdin.lock();
@@ -61,6 +72,18 @@ impl WaitingArea {
             .map(|(i, j)| self.get(i as usize, j as usize))
             .collect()
     }
+
+    fn visible_cells<'a>(
+        self: &'a WaitingArea,
+        i: usize,
+        j: usize,
+        dir: Direction,
+    ) -> impl Iterator<Item = u8> + 'a {
+        let width = self.cells[0].len();
+        match dir {
+            E => (j + 1..width).into_iter().map(move |j| self.get(i, j)),
+        }
+    }
 }
 
 impl<'a> Iterator for Part1Iter<'a> {
@@ -106,11 +129,32 @@ impl<'a> Iterator for Part1Iter<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use indoc::indoc;
 
     #[test]
     fn test_adjacent_cells() {
         let area_string = include_str!("../input_example");
         let area = WaitingArea::new(area_string.lines().map(|line| line.to_string()));
         assert_eq!(area.adjacent_cells(0, 9), [b'L', b'L', b'L'])
+    }
+    static AREA_EXAMPLE: &str = indoc! {r#"
+            .......#.
+            ...#.....
+            .#.......
+            .........
+            ..#L....#
+            ....#....
+            .........
+            #........
+            ...#.....
+        "#};
+
+    #[test]
+    fn test_visible_cells_in_direction() {
+        let area = WaitingArea::new(AREA_EXAMPLE.lines().map(|line| line.to_string()));
+        assert_eq!(
+            area.visible_cells(4, 3, Direction::E).collect::<Vec<_>>(),
+            "....#".as_bytes()
+        );
     }
 }
