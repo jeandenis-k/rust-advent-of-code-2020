@@ -11,6 +11,12 @@ struct Part1Iter<'a> {
     area: &'a mut WaitingArea,
 }
 
+#[derive(Debug, PartialEq)]
+struct Part2Iter<'a> {
+    area: &'a mut WaitingArea,
+}
+
+#[derive(Copy, Clone)]
 enum Direction {
     N,
     Ne,
@@ -44,6 +50,10 @@ impl WaitingArea {
 
     fn iter_part1(self: &mut WaitingArea) -> Part1Iter {
         Part1Iter { area: self }
+    }
+
+    fn iter_part2(self: &mut WaitingArea) -> Part2Iter {
+        Part2Iter { area: self }
     }
 
     fn occupied_seat_count(self: &WaitingArea) -> usize {
@@ -93,28 +103,30 @@ impl WaitingArea {
     ) -> Box<dyn Iterator<Item = u8> + 'a> {
         let width = self.cells[0].len();
         let height = self.cells.len();
+        let nord_lines = if i == 0 { 0..=0 } else { 0..=i - 1 };
+        let west_lines = if j == 0 { 0..=0 } else { 0..=j - 1 };
         match dir {
             Direction::E => Box::new((j + 1..width).into_iter().map(move |j| self.get(i, j))),
             Direction::Ne => Box::new(
-                (0..=i - 1)
+                nord_lines
                     .into_iter()
                     .rev()
                     .zip((j + 1..width).into_iter())
                     .map(move |(i, j)| self.get(i, j)),
             ),
-            Direction::N => Box::new((0..=i - 1).into_iter().rev().map(move |i| self.get(i, j))),
+            Direction::N => Box::new(nord_lines.into_iter().rev().map(move |i| self.get(i, j))),
             Direction::Nw => Box::new(
-                (0..=i - 1)
+                nord_lines
                     .into_iter()
                     .rev()
-                    .zip((0..=j - 1).into_iter().rev())
+                    .zip(west_lines.into_iter().rev())
                     .map(move |(i, j)| self.get(i, j)),
             ),
-            Direction::W => Box::new((0..=j - 1).into_iter().rev().map(move |j| self.get(i, j))),
+            Direction::W => Box::new(west_lines.into_iter().rev().map(move |j| self.get(i, j))),
             Direction::Sw => Box::new(
                 (i + 1..height)
                     .into_iter()
-                    .zip((0..=j - 1).into_iter().rev())
+                    .zip(west_lines.into_iter().rev())
                     .map(move |(i, j)| self.get(i, j)),
             ),
             Direction::S => Box::new((i + 1..height).into_iter().map(move |i| self.get(i, j))),
@@ -168,6 +180,45 @@ impl<'a> Iterator for Part1Iter<'a> {
     }
 }
 
+impl<'a> Iterator for Part2Iter<'a> {
+    type Item = Option<usize>;
+
+    fn next(self: &mut Part2Iter<'a>) -> Option<Self::Item> {
+        let old_area = self.area.clone();
+        let mut did_update = false;
+
+        for (i, line) in self.area.cells.iter_mut().enumerate() {
+            unsafe {
+                for (j, cell) in line.as_bytes_mut().iter_mut().enumerate() {
+                    if *cell == b'L' {
+                        let no_visible_occupied_seats: bool =
+                            old_area.visible_cells(i, j).iter().all(|c| *c != b'#');
+                        if no_visible_occupied_seats {
+                            *cell = b'#';
+                            did_update = true;
+                        }
+                    } else if *cell == b'#' {
+                        let visible_occupied_count = old_area
+                            .visible_cells(i, j)
+                            .iter()
+                            .filter(|c| **c == b'#')
+                            .count();
+                        if visible_occupied_count >= 5 {
+                            *cell = b'L';
+                            did_update = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if did_update {
+            Some(None)
+        } else {
+            Some(Some(self.area.occupied_seat_count()))
+        }
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -179,6 +230,7 @@ mod tests {
         let area = WaitingArea::new(area_string.lines().map(|line| line.to_string()));
         assert_eq!(area.adjacent_cells(0, 9), [b'L', b'L', b'L'])
     }
+
     static AREA_EXAMPLE: &str = indoc! {r#"
             .......#.
             ...#.....
@@ -210,6 +262,38 @@ mod tests {
             L.LLLLL.LL
         "});
         area.iter_part1().next();
+        assert_eq!(
+            area.cells,
+            vec![
+                "#.##.##.##",
+                "#######.##",
+                "#.#.#..#..",
+                "####.##.##",
+                "#.##.##.##",
+                "#.#####.##",
+                "..#.#.....",
+                "##########",
+                "#.######.#",
+                "#.#####.##",
+            ]
+        )
+    }
+
+    #[test]
+    fn test_next_with_part2_rules() {
+        let mut area = parse_example(indoc! {"
+            L.LL.LL.LL
+            LLLLLLL.LL
+            L.L.L..L..
+            LLLL.LL.LL
+            L.LL.LL.LL
+            L.LLLLL.LL
+            ..L.L.....
+            LLLLLLLLLL
+            L.LLLLLL.L
+            L.LLLLL.LL
+        "});
+        area.iter_part2().next();
         assert_eq!(
             area.cells,
             vec![
