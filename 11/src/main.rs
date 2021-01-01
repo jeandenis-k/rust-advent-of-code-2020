@@ -1,7 +1,7 @@
 use std::io::BufRead;
 use std::io::{self};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 struct WaitingArea {
     cells: Vec<String>,
 }
@@ -9,8 +9,11 @@ struct WaitingArea {
 fn main() {
     let stdin = io::stdin();
     let handle = stdin.lock();
-    let area = WaitingArea::new(handle.lines().filter_map(Result::ok));
-    dbg!(area.take(10).map(|(old, _new)| old).collect::<Vec<_>>());
+    let mut area = WaitingArea::new(handle.lines().filter_map(Result::ok));
+    println!(
+        "Solution of part 1 is {}",
+        area.occupied_seat_count_on_fixed_configuration(),
+    )
 }
 
 impl WaitingArea {
@@ -18,13 +21,26 @@ impl WaitingArea {
         let cells: Vec<_> = it.collect();
         WaitingArea { cells }
     }
+
+    fn occupied_seat_count_on_fixed_configuration(self: &mut WaitingArea) -> usize {
+        self.find_map(|option| option).unwrap()
+    }
+
+    fn occupied_seat_count(self: &WaitingArea) -> usize {
+        self.cells
+            .iter()
+            .map(|line| line.as_bytes().iter().filter(|c| **c == b'#').count())
+            .sum()
+    }
 }
 
 impl Iterator for WaitingArea {
-    type Item = (WaitingArea, WaitingArea);
+    type Item = Option<usize>;
 
     fn next(self: &mut WaitingArea) -> Option<Self::Item> {
         let old = self.clone();
+        let mut did_update = false;
+
         for (i, line) in self.cells.iter_mut().enumerate() {
             unsafe {
                 for (j, cell) in line.as_bytes_mut().iter_mut().enumerate() {
@@ -33,6 +49,7 @@ impl Iterator for WaitingArea {
                             adjacent_cells(&old.cells, i, j).iter().all(|c| *c != b'#');
                         if no_adjacent_occupied_seats {
                             *cell = b'#';
+                            did_update = true;
                         }
                     } else if *cell == b'#' {
                         let adjacent_occupied_count = adjacent_cells(&old.cells, i, j)
@@ -41,12 +58,18 @@ impl Iterator for WaitingArea {
                             .count();
                         if adjacent_occupied_count >= 4 {
                             *cell = b'L';
+                            did_update = true;
                         }
                     }
                 }
             }
         }
-        Some((old, self.clone()))
+
+        if did_update {
+            Some(None)
+        } else {
+            Some(Some(self.occupied_seat_count()))
+        }
     }
 }
 
