@@ -27,6 +27,10 @@ impl WaitingArea {
         WaitingArea { cells }
     }
 
+    fn get(self: &WaitingArea, i: usize, j: usize) -> u8 {
+        self.cells[i].as_bytes()[j]
+    }
+
     fn iter_part1(self: &mut WaitingArea) -> Part1Iter {
         Part1Iter { area: self }
     }
@@ -54,7 +58,7 @@ impl WaitingArea {
                     && *l >= 0
                     && *l < self.cells.len() as isize
             })
-            .map(|(i, j)| self.cells[i as usize].as_bytes()[j as usize])
+            .map(|(i, j)| self.get(i as usize, j as usize))
             .collect()
     }
 }
