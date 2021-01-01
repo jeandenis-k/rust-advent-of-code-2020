@@ -179,13 +179,45 @@ mod tests {
             ...#.....
         "#};
 
-    fn area_example() -> WaitingArea {
-        WaitingArea::new(AREA_EXAMPLE.lines().map(|line| line.to_string()))
+    fn parse_example(str: &str) -> WaitingArea {
+        WaitingArea::new(str.lines().map(|line| line.to_string()))
+    }
+
+    #[test]
+    fn test_next_with_part1_rules() {
+        let mut area = parse_example(indoc! {"
+            L.LL.LL.LL
+            LLLLLLL.LL
+            L.L.L..L..
+            LLLL.LL.LL
+            L.LL.LL.LL
+            L.LLLLL.LL
+            ..L.L.....
+            LLLLLLLLLL
+            L.LLLLLL.L
+            L.LLLLL.LL
+        "});
+        area.iter_part1().next();
+        assert_eq!(
+            area.cells,
+            vec![
+                "#.##.##.##",
+                "#######.##",
+                "#.#.#..#..",
+                "####.##.##",
+                "#.##.##.##",
+                "#.#####.##",
+                "..#.#.....",
+                "##########",
+                "#.######.#",
+                "#.#####.##",
+            ]
+        )
     }
 
     #[test]
     fn test_visible_cells_in_direction() {
-        let area = area_example();
+        let area = parse_example(AREA_EXAMPLE);
         assert_eq!(
             area.visible_cells(4, 3, Direction::E).collect::<Vec<_>>(),
             "....#".as_bytes()
