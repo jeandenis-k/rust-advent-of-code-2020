@@ -25,23 +25,20 @@ struct NavInstruction {
 
 #[derive(Debug, PartialEq)]
 enum NavAction {
-    N,
-    S,
-    E,
-    W,
+    Move(Direction),
+    F,
     L,
     R,
-    F,
 }
 
 impl FromStr for NavAction {
     type Err = ();
     fn from_str(s: &str) -> Result<NavAction, ()> {
         match s {
-            "N" => Ok(N),
-            "S" => Ok(S),
-            "E" => Ok(E),
-            "W" => Ok(W),
+            "N" => Ok(Move(North)),
+            "S" => Ok(Move(South)),
+            "E" => Ok(Move(East)),
+            "W" => Ok(Move(West)),
             "L" => Ok(L),
             "R" => Ok(R),
             "F" => Ok(F),
@@ -67,7 +64,9 @@ impl Ship {
         match instr.action {
             F => match self.dir_faced {
                 East => self.east_pos = self.east_pos + instr.value,
-                _ => unimplemented!(),
+                South => self.north_pos = self.north_pos - instr.value,
+                West => self.east_pos = self.east_pos - instr.value,
+                North => self.north_pos = self.north_pos + instr.value,
             },
             _ => unimplemented!(),
         }
@@ -106,7 +105,7 @@ F11
                     value: 10
                 },
                 NavInstruction {
-                    action: N,
+                    action: Move(North),
                     value: 3
                 },
                 NavInstruction {
