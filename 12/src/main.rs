@@ -74,6 +74,10 @@ impl Ship {
             R => self.dir_faced = self.dir_faced.turn_right(instr.value),
         }
     }
+
+    fn manhattan_distance(self: &Ship) -> i32 {
+        self.east_pos.abs() + self.north_pos.abs()
+    }
 }
 
 impl NavInstruction {
@@ -218,5 +222,6 @@ F11
         assert_eq!(ship.east_pos, 17);
         assert_eq!(ship.north_pos, -8);
         assert_eq!(ship.dir_faced, South);
+        assert_eq!(ship.manhattan_distance(), 25);
     }
 }
