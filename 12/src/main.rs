@@ -54,10 +54,18 @@ fn main() {
     let stdin = io::stdin();
     let handle = stdin.lock();
     let mut ship = Ship::new();
-    for instr in NavInstruction::parse(handle.lines().filter_map(Result::ok)) {
+    let instructions: Vec<_> =
+        NavInstruction::parse(handle.lines().filter_map(Result::ok)).collect();
+    for instr in instructions.iter() {
         ship.apply1(&instr);
     }
-    println!("Part 1 manhattan distance is {}", ship.manhattan_distance())
+    println!("Part 1 manhattan distance is {}", ship.manhattan_distance());
+
+    let mut ship = Ship::new();
+    for instr in instructions.iter() {
+        ship.apply2(&instr);
+    }
+    println!("Part 2 manhattan distance is {}", ship.manhattan_distance())
 }
 
 impl Ship {
@@ -101,8 +109,18 @@ impl Ship {
             Move(South) => self.waypoint.1 = self.waypoint.1 - value,
             Move(West) => self.waypoint.0 = self.waypoint.0 - value,
             Move(North) => self.waypoint.1 = self.waypoint.1 + value,
-            L => self.dir_faced = self.dir_faced.turn_left(*value),
-            R => self.dir_faced = self.dir_faced.turn_right(*value),
+            R => {
+                for _ in 0..(value / 90) % 4 {
+                    let (e, n) = self.waypoint;
+                    self.waypoint = (n, -e);
+                }
+            }
+            L => {
+                for _ in 0..(value / 90) % 4 {
+                    let (e, n) = self.waypoint;
+                    self.waypoint = (-n, e);
+                }
+            }
         }
     }
 
@@ -275,5 +293,10 @@ F11
         ship.apply2(&instructions[3]);
         assert_eq!(ship.pos(), (170, 38));
         assert_eq!(ship.waypoint, (4, -10));
+
+        ship.apply2(&instructions[4]);
+        assert_eq!(ship.pos(), (214, -72));
+        assert_eq!(ship.waypoint, (4, -10));
+        assert_eq!(ship.manhattan_distance(), 286)
     }
 }
