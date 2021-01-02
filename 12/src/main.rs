@@ -78,6 +78,7 @@ impl Ship {
         }
     }
 
+    #[allow(dead_code)]
     fn pos(self: &Ship) -> (i32, i32) {
         (self.east_pos, self.north_pos)
     }
@@ -88,10 +89,10 @@ impl Ship {
                 action: Move(self.dir_faced),
                 value: instr.value,
             }),
-            Move(East) => self.east_pos = self.east_pos + instr.value,
-            Move(South) => self.north_pos = self.north_pos - instr.value,
-            Move(West) => self.east_pos = self.east_pos - instr.value,
-            Move(North) => self.north_pos = self.north_pos + instr.value,
+            Move(East) => self.east_pos += instr.value,
+            Move(South) => self.north_pos -= instr.value,
+            Move(West) => self.east_pos -= instr.value,
+            Move(North) => self.north_pos += instr.value,
             L => self.dir_faced = self.dir_faced.turn_left(instr.value),
             R => self.dir_faced = self.dir_faced.turn_right(instr.value),
         }
@@ -102,13 +103,13 @@ impl Ship {
         match action {
             F => {
                 let (e, n) = self.waypoint;
-                self.east_pos = self.east_pos + value * e;
-                self.north_pos = self.north_pos + value * n;
+                self.east_pos += value * e;
+                self.north_pos += value * n;
             }
-            Move(East) => self.waypoint.0 = self.waypoint.0 + value,
-            Move(South) => self.waypoint.1 = self.waypoint.1 - value,
-            Move(West) => self.waypoint.0 = self.waypoint.0 - value,
-            Move(North) => self.waypoint.1 = self.waypoint.1 + value,
+            Move(East) => self.waypoint.0 += value,
+            Move(South) => self.waypoint.1 -= value,
+            Move(West) => self.waypoint.0 -= value,
+            Move(North) => self.waypoint.1 += value,
             R => {
                 for _ in 0..(value / 90) % 4 {
                     let (e, n) = self.waypoint;
