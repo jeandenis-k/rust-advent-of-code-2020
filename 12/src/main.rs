@@ -2,12 +2,14 @@ use std::str::FromStr;
 use Direction::*;
 use NavAction::*;
 
+#[derive(Debug, PartialEq)]
 struct Ship {
     east_pos: i32,
     north_pos: i32,
     dir_faced: Direction,
 }
 
+#[derive(Debug, PartialEq)]
 enum Direction {
     East,
     South,
@@ -58,6 +60,16 @@ impl Ship {
             east_pos: 0,
             north_pos: 0,
             dir_faced: East,
+        }
+    }
+
+    fn apply(self: &mut Ship, instr: &NavInstruction) {
+        match instr.action {
+            F => match self.dir_faced {
+                East => self.east_pos = self.east_pos + instr.value,
+                _ => unimplemented!(),
+            },
+            _ => unimplemented!(),
         }
     }
 }
@@ -112,4 +124,17 @@ F11
             ]
         )
     }
+
+    #[test]
+    fn test_execute_one_instruction() {
+        let mut ship = Ship::new();
+        ship.apply(&NavInstruction {
+            action: F,
+            value: 10,
+        });
+        assert_eq!(ship.east_pos, 10);
+        assert_eq!(ship.north_pos, 0);
+        assert_eq!(ship.dir_faced, East);
+    }
+
 }
