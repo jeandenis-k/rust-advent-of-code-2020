@@ -9,7 +9,7 @@ struct Ship {
     dir_faced: Direction,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 enum Direction {
     East,
     South,
@@ -62,12 +62,14 @@ impl Ship {
 
     fn apply(self: &mut Ship, instr: &NavInstruction) {
         match instr.action {
-            F => match self.dir_faced {
-                East => self.east_pos = self.east_pos + instr.value,
-                South => self.north_pos = self.north_pos - instr.value,
-                West => self.east_pos = self.east_pos - instr.value,
-                North => self.north_pos = self.north_pos + instr.value,
-            },
+            F => self.apply(&NavInstruction {
+                action: Move(self.dir_faced),
+                value: instr.value,
+            }),
+            Move(East) => self.east_pos = self.east_pos + instr.value,
+            Move(South) => self.north_pos = self.north_pos - instr.value,
+            Move(West) => self.east_pos = self.east_pos - instr.value,
+            Move(North) => self.north_pos = self.north_pos + instr.value,
             _ => unimplemented!(),
         }
     }
@@ -136,4 +138,27 @@ F11
         assert_eq!(ship.dir_faced, East);
     }
 
+    #[test]
+    fn execute_simple_instructions() {
+        let mut ship = Ship::new();
+        for instr in vec![
+            NavInstruction {
+                action: F,
+                value: 10,
+            },
+            NavInstruction {
+                action: Move(North),
+                value: 3,
+            },
+            NavInstruction {
+                action: F,
+                value: 7,
+            },
+        ] {
+            ship.apply(&instr);
+        }
+        assert_eq!(ship.east_pos, 17);
+        assert_eq!(ship.north_pos, 3);
+        assert_eq!(ship.dir_faced, East);
+    }
 }
