@@ -9,6 +9,7 @@ struct Ship {
     east_pos: i32,
     north_pos: i32,
     dir_faced: Direction,
+    waypoint: (i32, i32),
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -65,7 +66,12 @@ impl Ship {
             east_pos: 0,
             north_pos: 0,
             dir_faced: East,
+            waypoint: (10, 1),
         }
+    }
+
+    fn pos(self: &Ship) -> (i32, i32) {
+        (self.east_pos, self.north_pos)
     }
 
     fn apply1(self: &mut Ship, instr: &NavInstruction) {
@@ -78,6 +84,22 @@ impl Ship {
             Move(South) => self.north_pos = self.north_pos - instr.value,
             Move(West) => self.east_pos = self.east_pos - instr.value,
             Move(North) => self.north_pos = self.north_pos + instr.value,
+            L => self.dir_faced = self.dir_faced.turn_left(instr.value),
+            R => self.dir_faced = self.dir_faced.turn_right(instr.value),
+        }
+    }
+
+    fn apply2(self: &mut Ship, instr: &NavInstruction) {
+        match instr.action {
+            F => {
+                let (e, n) = self.waypoint;
+                self.east_pos = self.east_pos + instr.value * e;
+                self.north_pos = self.north_pos + instr.value * n;
+            }
+            Move(East) => self.waypoint.0 = self.waypoint.0 + instr.value,
+            Move(South) => self.waypoint.1 = self.waypoint.1 - instr.value,
+            Move(West) => self.waypoint.0 = self.waypoint.0 - instr.value,
+            Move(North) => self.waypoint.1 = self.waypoint.1 + instr.value,
             L => self.dir_faced = self.dir_faced.turn_left(instr.value),
             R => self.dir_faced = self.dir_faced.turn_right(instr.value),
         }
@@ -231,5 +253,26 @@ F11
         assert_eq!(ship.north_pos, -8);
         assert_eq!(ship.dir_faced, South);
         assert_eq!(ship.manhattan_distance(), 25);
+    }
+
+    #[test]
+    fn apply_part2_instructions() {
+        let mut ship = Ship::new();
+        let instructions =
+            NavInstruction::parse(EXAMPLE.lines().map(|l| l.to_string())).collect::<Vec<_>>();
+        ship.apply2(&instructions[0]);
+        assert_eq!(ship.pos(), (100, 10));
+
+        ship.apply2(&instructions[1]);
+        assert_eq!(ship.pos(), (100, 10));
+        assert_eq!(ship.waypoint, (10, 4));
+
+        ship.apply2(&instructions[2]);
+        assert_eq!(ship.pos(), (170, 38));
+        assert_eq!(ship.waypoint, (10, 4));
+
+        ship.apply2(&instructions[3]);
+        assert_eq!(ship.pos(), (170, 38));
+        assert_eq!(ship.waypoint, (4, -10));
     }
 }
