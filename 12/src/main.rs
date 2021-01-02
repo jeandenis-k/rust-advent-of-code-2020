@@ -54,9 +54,9 @@ fn main() {
     let handle = stdin.lock();
     let mut ship = Ship::new();
     for instr in NavInstruction::parse(handle.lines().filter_map(Result::ok)) {
-        ship.apply(&instr);
+        ship.apply1(&instr);
     }
-    println!("Final manhattan distance is {}", ship.manhattan_distance())
+    println!("Part 1 manhattan distance is {}", ship.manhattan_distance())
 }
 
 impl Ship {
@@ -68,9 +68,9 @@ impl Ship {
         }
     }
 
-    fn apply(self: &mut Ship, instr: &NavInstruction) {
+    fn apply1(self: &mut Ship, instr: &NavInstruction) {
         match instr.action {
-            F => self.apply(&NavInstruction {
+            F => self.apply1(&NavInstruction {
                 action: Move(self.dir_faced),
                 value: instr.value,
             }),
@@ -178,7 +178,7 @@ F11
     #[test]
     fn test_execute_one_instruction() {
         let mut ship = Ship::new();
-        ship.apply(&NavInstruction {
+        ship.apply1(&NavInstruction {
             action: F,
             value: 10,
         });
@@ -204,7 +204,7 @@ F11
                 value: 7,
             },
         ] {
-            ship.apply(&instr);
+            ship.apply1(&instr);
         }
         assert_eq!(ship.east_pos, 17);
         assert_eq!(ship.north_pos, 3);
@@ -214,7 +214,7 @@ F11
     #[test]
     fn turn_ship_right() {
         let mut ship = Ship::new();
-        ship.apply(&NavInstruction {
+        ship.apply1(&NavInstruction {
             action: R,
             value: 90,
         });
@@ -225,7 +225,7 @@ F11
     fn execute_example_instructions() {
         let mut ship = Ship::new();
         for instr in NavInstruction::parse(EXAMPLE.lines().map(|l| l.to_string())) {
-            ship.apply(&instr);
+            ship.apply1(&instr);
         }
         assert_eq!(ship.east_pos, 17);
         assert_eq!(ship.north_pos, -8);
