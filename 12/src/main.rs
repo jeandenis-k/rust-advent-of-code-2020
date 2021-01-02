@@ -70,7 +70,8 @@ impl Ship {
             Move(South) => self.north_pos = self.north_pos - instr.value,
             Move(West) => self.east_pos = self.east_pos - instr.value,
             Move(North) => self.north_pos = self.north_pos + instr.value,
-            _ => unimplemented!(),
+            L => self.dir_faced = self.dir_faced.turn_left(instr.value),
+            R => self.dir_faced = self.dir_faced.turn_right(instr.value),
         }
     }
 }
@@ -82,6 +83,42 @@ impl NavInstruction {
             let value = line[1..].parse().unwrap();
             NavInstruction { action, value }
         })
+    }
+}
+
+impl From<i32> for Direction {
+    fn from(n: i32) -> Self {
+        let n = if n < 0 { n % 4 + 4 } else { n % 4 };
+        match n {
+            0 => East,
+            1 => South,
+            2 => West,
+            3 => North,
+            _ => unreachable!("Invalid integer for direction"),
+        }
+    }
+}
+
+impl From<Direction> for i32 {
+    fn from(d: Direction) -> Self {
+        match d {
+            East => 0,
+            South => 1,
+            West => 2,
+            North => 3,
+        }
+    }
+}
+
+impl Direction {
+    fn turn_right(self: &Direction, degrees: i32) -> Direction {
+        let delta = degrees / 90;
+        Direction::from(i32::from(*self) + delta % 4)
+    }
+
+    fn turn_left(self: &Direction, degrees: i32) -> Direction {
+        let delta = degrees / 90;
+        Direction::from(i32::from(*self) - delta % 4)
     }
 }
 
@@ -160,5 +197,26 @@ F11
         assert_eq!(ship.east_pos, 17);
         assert_eq!(ship.north_pos, 3);
         assert_eq!(ship.dir_faced, East);
+    }
+
+    #[test]
+    fn turn_ship_right() {
+        let mut ship = Ship::new();
+        ship.apply(&NavInstruction {
+            action: R,
+            value: 90,
+        });
+        assert_eq!(ship.dir_faced, South);
+    }
+
+    #[test]
+    fn execute_example_instructions() {
+        let mut ship = Ship::new();
+        for instr in NavInstruction::parse(EXAMPLE.lines().map(|l| l.to_string())) {
+            ship.apply(&instr);
+        }
+        assert_eq!(ship.east_pos, 17);
+        assert_eq!(ship.north_pos, -8);
+        assert_eq!(ship.dir_faced, South);
     }
 }
