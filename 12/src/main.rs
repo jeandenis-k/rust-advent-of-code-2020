@@ -90,18 +90,19 @@ impl Ship {
     }
 
     fn apply2(self: &mut Ship, instr: &NavInstruction) {
-        match instr.action {
+        let NavInstruction { action, value } = instr;
+        match action {
             F => {
                 let (e, n) = self.waypoint;
-                self.east_pos = self.east_pos + instr.value * e;
-                self.north_pos = self.north_pos + instr.value * n;
+                self.east_pos = self.east_pos + value * e;
+                self.north_pos = self.north_pos + value * n;
             }
-            Move(East) => self.waypoint.0 = self.waypoint.0 + instr.value,
-            Move(South) => self.waypoint.1 = self.waypoint.1 - instr.value,
-            Move(West) => self.waypoint.0 = self.waypoint.0 - instr.value,
-            Move(North) => self.waypoint.1 = self.waypoint.1 + instr.value,
-            L => self.dir_faced = self.dir_faced.turn_left(instr.value),
-            R => self.dir_faced = self.dir_faced.turn_right(instr.value),
+            Move(East) => self.waypoint.0 = self.waypoint.0 + value,
+            Move(South) => self.waypoint.1 = self.waypoint.1 - value,
+            Move(West) => self.waypoint.0 = self.waypoint.0 - value,
+            Move(North) => self.waypoint.1 = self.waypoint.1 + value,
+            L => self.dir_faced = self.dir_faced.turn_left(*value),
+            R => self.dir_faced = self.dir_faced.turn_right(*value),
         }
     }
 
