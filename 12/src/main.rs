@@ -1,3 +1,5 @@
+use std::io::BufRead;
+use std::io::{self};
 use std::str::FromStr;
 use Direction::*;
 use NavAction::*;
@@ -48,7 +50,13 @@ impl FromStr for NavAction {
 }
 
 fn main() {
-    println!("Hello, world!");
+    let stdin = io::stdin();
+    let handle = stdin.lock();
+    let mut ship = Ship::new();
+    for instr in NavInstruction::parse(handle.lines().filter_map(Result::ok)) {
+        ship.apply(&instr);
+    }
+    println!("Final manhattan distance is {}", ship.manhattan_distance())
 }
 
 impl Ship {
