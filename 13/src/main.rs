@@ -1,6 +1,10 @@
-type Notes = (i32, Vec<i32>);
+#[derive(Debug, PartialEq)]
+struct Notes {
+    earliest: i32,
+    bus_ids: Vec<i32>,
+}
 fn main() {
-    println!("{:?}", solve_part1(parse(INPUT).unwrap()));
+    println!("{:?}", parse(INPUT).unwrap().solve_part1());
 }
 
 static INPUT: &str = include_str!("../input");
@@ -15,19 +19,25 @@ fn parse(input: &str) -> Option<Notes> {
         .map(|s| s.parse())
         .filter_map(Result::ok)
         .collect();
-    Some((timestamp, bus_ids))
+    Some(Notes {
+        earliest: timestamp,
+        bus_ids,
+    })
 }
 
-fn solve_part1((timestamp, buses): Notes) -> Option<i32> {
-    (timestamp..).find_map(|time| {
-        buses.iter().find_map(|bus_id| {
-            if time % bus_id == 0 {
-                Some((time - timestamp) * *bus_id)
-            } else {
-                None
-            }
+impl Notes {
+    fn solve_part1(self: &Notes) -> Option<i32> {
+        let Notes { earliest, bus_ids } = self;
+        (*earliest..).find_map(|time| {
+            bus_ids.iter().find_map(|bus_id| {
+                if time % bus_id == 0 {
+                    Some((time - earliest) * *bus_id)
+                } else {
+                    None
+                }
+            })
         })
-    })
+    }
 }
 
 #[cfg(test)]
@@ -37,11 +47,17 @@ mod tests {
 
     #[test]
     fn test_parse() {
-        assert_eq!(parse(INPUT_EXAMPLE), Some((939, vec![7, 13, 59, 31, 19])))
+        assert_eq!(
+            parse(INPUT_EXAMPLE),
+            Some(Notes {
+                earliest: 939,
+                bus_ids: vec![7, 13, 59, 31, 19]
+            })
+        )
     }
 
     #[test]
     fn test_solve_part1() {
-        assert_eq!(solve_part1(parse(INPUT_EXAMPLE).unwrap()), Some(295))
+        assert_eq!(parse(INPUT_EXAMPLE).unwrap().solve_part1(), Some(295))
     }
 }
