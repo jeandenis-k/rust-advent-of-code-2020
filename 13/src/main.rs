@@ -3,7 +3,6 @@ fn main() {
     println!("{:?}", solve_part1(parse(INPUT).unwrap()));
 }
 
-static INPUT_EXAMPLE: &str = include_str!("../input_example");
 static INPUT: &str = include_str!("../input");
 
 fn parse(input: &str) -> Option<Notes> {
@@ -34,6 +33,7 @@ fn solve_part1((timestamp, buses): Notes) -> Option<i32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    static INPUT_EXAMPLE: &str = include_str!("../input_example");
 
     #[test]
     fn test_parse() {
