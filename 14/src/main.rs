@@ -1,3 +1,5 @@
+mod mask;
+use mask::*;
 use regex::Regex;
 use std::collections::HashMap;
 use Instruction::*;
@@ -9,7 +11,7 @@ struct Program {
 
 #[derive(PartialEq, Debug)]
 enum Instruction {
-    Mask(String),
+    SetMask(String),
     Write((usize, u64)),
 }
 
@@ -32,7 +34,7 @@ impl Program {
                     Write((address, value))
                 } else if let Some(matches) = re_mask.captures(&line) {
                     let mask = matches.get(1).unwrap().as_str().parse().unwrap();
-                    Mask(mask)
+                    SetMask(mask)
                 } else {
                     panic!("Invalid input line: {}", line);
                 }
@@ -49,25 +51,11 @@ impl Program {
                 Write((addr, value)) => {
                     memory.insert(*addr, apply_mask(*value, &current_mask));
                 }
-                Mask(mask) => current_mask = mask.clone(),
+                SetMask(mask) => current_mask = mask.clone(),
             }
         }
         memory.values().sum()
     }
-}
-
-fn apply_mask(n: u64, mask: &str) -> u64 {
-    n & gen_and_mask(mask) | gen_or_mask(mask)
-}
-
-fn gen_and_mask(s: &str) -> u64 {
-    let s = str::replace(s, "X", "1");
-    u64::from_str_radix(&s.to_string(), 2).unwrap()
-}
-
-fn gen_or_mask(s: &str) -> u64 {
-    let s = str::replace(s, "X", "0");
-    u64::from_str_radix(&s.to_string(), 2).unwrap()
 }
 
 #[cfg(test)]
@@ -75,7 +63,6 @@ mod tests {
     use super::*;
 
     static PROGRAM: &str = include_str!("input_example");
-    static MASK: &str = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X";
 
     #[test]
     fn test_execute_program() {
@@ -88,35 +75,12 @@ mod tests {
             Program::parse(PROGRAM),
             Program {
                 instructions: vec![
-                    Mask("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X".to_string()),
+                    SetMask("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X".to_string()),
                     Write((8, 11)),
                     Write((7, 101)),
                     Write((8, 0))
                 ]
             }
-        )
-    }
-
-    #[test]
-    fn test_apply_mask() {
-        assert_eq!(apply_mask(11, MASK), 73);
-        assert_eq!(apply_mask(101, MASK), 101);
-        assert_eq!(apply_mask(0, MASK), 64);
-    }
-
-    #[test]
-    fn test_gen_and_mask() {
-        assert_eq!(
-            gen_and_mask(MASK),
-            0b111111111111111111111111111111111101_u64
-        )
-    }
-
-    #[test]
-    fn test_gen_or_mask() {
-        assert_eq!(
-            gen_or_mask(MASK),
-            0b000000000000000000000000000001000000_u64
         )
     }
 }
