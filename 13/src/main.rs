@@ -10,7 +10,7 @@ struct Notes {
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum BusEntry {
-    Id(i32),
+    Id(i64),
     X,
 }
 fn main() {
@@ -41,8 +41,8 @@ impl Notes {
         (*earliest..).find_map(|time| {
             bus_ids.iter().find_map(|bus_entry| match bus_entry {
                 BusEntry::Id(bus_id) => {
-                    if time % bus_id == 0 {
-                        Some((time - earliest) * *bus_id)
+                    if time % (*bus_id as i32) == 0 {
+                        Some((time - earliest) * (*bus_id as i32))
                     } else {
                         None
                     }
@@ -51,38 +51,59 @@ impl Notes {
             })
         })
     }
-    fn solve_part2(self: &Notes) -> Option<i64> {
-        let first = match self.bus_ids[0] {
-            Id(id) => id,
-            X => 1,
-        };
-        (100000000000000_i64..).find_map(|n| {
-            dbg!(n);
-            if self
-                .bus_ids
-                .iter()
-                .enumerate()
-                .all(|(i, entry)| match entry {
-                    BusEntry::Id(bus_id) => (n + i64::try_from(i).unwrap()) % (*bus_id as i64) == 0,
-                    BusEntry::X => true,
-                })
-            {
-                Some(n)
-            } else {
-                None
-            }
-        })
+    fn solve_part2(self: &Notes) -> i64 {
+        // For each bus id n, find a number m that satisfies the two following conditions :
+        // - it is a multiple of the product of all other numbers
+        // - m % n == index of bus id
+        let product = self.numbers().map(|(_, n)| n).fold(1, std::ops::Mul::mul);
+        let sum = self
+            .numbers()
+            .map(|(index, n)| {
+                let product_of_others = product / n;
+                let chinese = (1_i64..)
+                    .find_map(|m| {
+                        println!(
+                            "Trying {} for chinese with n = {} and index = {}",
+                            m * product_of_others,
+                            n,
+                            index
+                        );
+                        let chinese = m * product_of_others;
+                        if index == 0 && chinese % n == 0 {
+                            assert!(chinese % n == 0);
+                            Some(chinese)
+                        } else if index != 0 && chinese % n == 1 {
+                            let index = i64::try_from(index).unwrap();
+                            dbg!(n - index);
+                            let reminder = (-index % n) + n;
+                            let chinese = chinese * reminder;
+                            assert!(chinese % n == reminder);
+                            Some(chinese)
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap();
+                println!(
+                    "Found chinese factor {} for {} with reminder {} (product of others is {})",
+                    chinese, n, index, product_of_others
+                );
+                chinese
+            })
+            .sum::<i64>();
+        println!("Sum is {}", sum);
+        println!("Product is {}", product);
+        sum % product
     }
 
-    fn max(self: &Notes) -> i32 {
+    fn numbers(self: &Notes) -> impl Iterator<Item = (usize, i64)> + '_ {
         self.bus_ids
             .iter()
-            .map(|entry| match entry {
-                X => 0,
-                Id(id) => *id,
+            .enumerate()
+            .filter_map(|(index, entry)| match entry {
+                Id(id) => Some((index, *id)),
+                X => None,
             })
-            .max()
-            .unwrap()
     }
 }
 
@@ -119,6 +140,6 @@ mod tests {
 
     #[test]
     fn test_solve_part2() {
-        assert_eq!(parse("12\n17,x,13,19").unwrap().solve_part2(), Some(3417))
+        assert_eq!(parse("12\n17,x,13,19").unwrap().solve_part2(), 3417)
     }
 }
