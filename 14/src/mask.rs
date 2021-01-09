@@ -1,7 +1,7 @@
 pub struct Mask<'a>(pub &'a str);
 
 impl<'a> Mask<'a> {
-    pub fn apply_mask(self: &Mask<'a>, n: u64) -> u64 {
+    pub fn apply(self: &Mask<'a>, n: u64) -> u64 {
         n & gen_and_mask(self.0) | gen_or_mask(self.0)
     }
 }
@@ -24,9 +24,9 @@ mod tests {
 
     #[test]
     fn test_apply_mask() {
-        assert_eq!(Mask(MASK).apply_mask(11), 73);
-        assert_eq!(Mask(MASK).apply_mask(101), 101);
-        assert_eq!(Mask(MASK).apply_mask(0), 64);
+        assert_eq!(Mask(MASK).apply(11), 73);
+        assert_eq!(Mask(MASK).apply(101), 101);
+        assert_eq!(Mask(MASK).apply(0), 64);
     }
 
     #[test]

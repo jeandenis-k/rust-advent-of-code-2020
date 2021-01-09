@@ -49,7 +49,7 @@ impl Program {
         for instruction in self.instructions.iter().by_ref() {
             match instruction {
                 Write((addr, value)) => {
-                    memory.insert(*addr, current_mask.apply_mask(*value));
+                    memory.insert(*addr, current_mask.apply(*value));
                 }
                 SetMask(mask) => current_mask = Mask(mask),
             }
