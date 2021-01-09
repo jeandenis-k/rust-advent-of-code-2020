@@ -1,8 +1,28 @@
+#[derive(Debug)]
 pub struct Mask<'a>(pub &'a str);
 
 impl<'a> Mask<'a> {
     pub fn apply(self: &Mask<'a>, n: u64) -> u64 {
         n & gen_and_mask(self.0) | gen_or_mask(self.0)
+    }
+
+    pub fn apply2(self: &Mask<'a>, n: u64) -> Vec<u64> {
+        let result: String = format!("{:036b}", n)
+            .chars()
+            .zip(self.0.chars())
+            .map(|(n, m)| match m {
+                '0' => n,
+                '1' => '1',
+                _ => m,
+            })
+            .collect();
+        let floating_indices: Vec<usize> = self
+            .0
+            .chars()
+            .enumerate()
+            .filter_map(|(i, c)| if c == 'X' { Some(i) } else { None })
+            .collect();
+        gen_addresses(&result, &floating_indices)
     }
 }
 
@@ -16,8 +36,31 @@ fn gen_or_mask(s: &str) -> u64 {
     u64::from_str_radix(&s.to_string(), 2).unwrap()
 }
 
+fn gen_addresses(s: &str, floating_indices: &[usize]) -> Vec<u64> {
+    let index = floating_indices[0];
+    let mut s1 = s.chars().collect::<Vec<_>>();
+    let mut s2 = s.chars().collect::<Vec<_>>();
+    s1[index] = '0';
+    s2[index] = '1';
+    if floating_indices.len() == 1 {
+        let s1: String = s1.iter().collect();
+        let s2: String = s2.iter().collect();
+        vec![
+            u64::from_str_radix(&s1, 2).unwrap(),
+            u64::from_str_radix(&s2, 2).unwrap(),
+        ]
+    } else {
+        let s1: String = s1.iter().collect();
+        let s2: String = s2.iter().collect();
+        let mut s1_variants = gen_addresses(&s1, &floating_indices[1..]);
+        let s2_variants = gen_addresses(&s2, &floating_indices[1..]);
+        s1_variants.extend(&s2_variants);
+        s1_variants
+    }
+}
+
 #[cfg(test)]
-mod tests {
+mod tests_part1 {
     use super::*;
 
     static MASK: &str = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X";
@@ -43,5 +86,17 @@ mod tests {
             gen_or_mask(MASK),
             0b000000000000000000000000000001000000_u64
         )
+    }
+}
+
+#[cfg(test)]
+mod tests_part2 {
+    use super::*;
+
+    static MASK: &str = "000000000000000000000000000000X1001X";
+
+    #[test]
+    fn test_apply2() {
+        assert_eq!(Mask(MASK).apply2(42), vec![26, 27, 58, 59]);
     }
 }
