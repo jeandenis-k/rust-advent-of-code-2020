@@ -13,12 +13,13 @@ enum BusEntry {
     Id(i64),
     X,
 }
+
+static INPUT: &str = include_str!("../input");
+
 fn main() {
     println!("{:?}", parse(INPUT).unwrap().solve_part1());
     println!("{:?}", parse(INPUT).unwrap().solve_part2());
 }
-
-static INPUT: &str = include_str!("../input");
 
 fn parse(input: &str) -> Option<Notes> {
     let mut lines = input.lines();
@@ -37,44 +38,34 @@ fn parse(input: &str) -> Option<Notes> {
 
 impl Notes {
     fn solve_part1(self: &Notes) -> Option<i32> {
-        let Notes { earliest, bus_ids } = self;
-        (*earliest..).find_map(|time| {
-            bus_ids.iter().find_map(|bus_entry| match bus_entry {
-                BusEntry::Id(bus_id) => {
-                    if time % (*bus_id as i32) == 0 {
-                        Some((time - earliest) * (*bus_id as i32))
-                    } else {
-                        None
-                    }
+        (self.earliest..).find_map(|time| {
+            self.numbers().find_map(|(_, bus_id)| {
+                if time % (bus_id as i32) == 0 {
+                    Some((time - self.earliest) * (bus_id as i32))
+                } else {
+                    None
                 }
-                BusEntry::X => None,
             })
         })
     }
+
     fn solve_part2(self: &Notes) -> i64 {
         // For each bus id n, find a number m that satisfies the two following conditions :
         // - it is a multiple of the product of all other numbers
-        // - m % n == index of bus id
+        // - m % n == - index of bus id
         let product = self.numbers().map(|(_, n)| n).fold(1, std::ops::Mul::mul);
         let sum = self
             .numbers()
             .map(|(index, n)| {
                 let product_of_others = product / n;
-                let chinese = (1_i64..)
+                (1_i64..)
                     .find_map(|m| {
-                        println!(
-                            "Trying {} for chinese with n = {} and index = {}",
-                            m * product_of_others,
-                            n,
-                            index
-                        );
                         let chinese = m * product_of_others;
                         if index == 0 && chinese % n == 0 {
                             assert!(chinese % n == 0);
                             Some(chinese)
                         } else if index != 0 && chinese % n == 1 {
                             let index = i64::try_from(index).unwrap();
-                            dbg!(n - index);
                             let reminder = (-index % n) + n;
                             let chinese = chinese * reminder;
                             assert!(chinese % n == reminder);
@@ -83,16 +74,9 @@ impl Notes {
                             None
                         }
                     })
-                    .unwrap();
-                println!(
-                    "Found chinese factor {} for {} with reminder {} (product of others is {})",
-                    chinese, n, index, product_of_others
-                );
-                chinese
+                    .unwrap()
             })
             .sum::<i64>();
-        println!("Sum is {}", sum);
-        println!("Product is {}", product);
         sum % product
     }
 
