@@ -18,7 +18,9 @@ enum Instruction {
 static PROGRAM: &str = include_str!("input");
 
 fn main() {
-    println!("{}", Program::parse(PROGRAM).execute());
+    let program = Program::parse(PROGRAM);
+    println!("{}", program.execute());
+    println!("{}", program.execute2());
 }
 
 impl Program {
@@ -56,6 +58,22 @@ impl Program {
         }
         memory.values().sum()
     }
+
+    fn execute2(self: &Program) -> u64 {
+        let mut memory: HashMap<usize, u64> = HashMap::new();
+        let mut current_mask = Mask("");
+        for instruction in self.instructions.iter().by_ref() {
+            match instruction {
+                Write((addr, value)) => {
+                    for addr in current_mask.apply2(*addr as u64) {
+                        memory.insert(addr, *value);
+                    }
+                }
+                SetMask(mask) => current_mask = Mask(mask),
+            }
+        }
+        memory.values().sum()
+    }
 }
 
 #[cfg(test)]
@@ -63,10 +81,16 @@ mod tests {
     use super::*;
 
     static PROGRAM: &str = include_str!("input_example");
+    static PROGRAM2: &str = include_str!("input_example2");
 
     #[test]
     fn test_execute_program() {
         assert_eq!(Program::parse(PROGRAM).execute(), 165)
+    }
+
+    #[test]
+    fn test_execute_version2() {
+        assert_eq!(Program::parse(PROGRAM2).execute2(), 208)
     }
 
     #[test]
