@@ -7,11 +7,16 @@ struct Recitation<'a> {
 }
 
 fn main() {
-    println!("{}", solve(&PUZZLE_INPUT));
+    println!("{}", solve_part1(&PUZZLE_INPUT));
+    println!("{}", solve_part2(&PUZZLE_INPUT));
 }
 
-fn solve(input: &[i32]) -> i32 {
+fn solve_part1(input: &[i32]) -> i32 {
     Recitation::new(input).nth(2019).unwrap()
+}
+
+fn solve_part2(input: &[i32]) -> i32 {
+    Recitation::new(input).nth(30000000 - 1).unwrap()
 }
 
 impl<'a> Recitation<'a> {
@@ -70,8 +75,14 @@ mod tests {
     }
 
     #[test]
-    fn test_solve() {
-        assert_eq!(solve(&INPUT), 436);
-        assert_eq!(solve(&[1, 3, 2]), 1);
+    fn test_solve_part1() {
+        assert_eq!(solve_part1(&INPUT), 436);
+        assert_eq!(solve_part1(&[1, 3, 2]), 1);
+    }
+
+    #[test]
+    fn test_solve_part2() {
+        // assert_eq!(solve_part2(&INPUT), 175594);
+        // assert_eq!(solve_part2(&[1, 3, 2]), 2578);
     }
 }
