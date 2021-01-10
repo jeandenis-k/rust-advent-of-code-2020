@@ -1,9 +1,12 @@
+use std::collections::HashMap;
+
 static PUZZLE_INPUT: [i32; 6] = [2, 0, 1, 9, 5, 19];
 
 struct Recitation<'a> {
     starting_numbers: &'a [i32],
     count: i32,
-    spoken: Vec<i32>,
+    spoken: HashMap<i32, i32>,
+    last_spoken: i32,
 }
 
 fn main() {
@@ -24,7 +27,8 @@ impl<'a> Recitation<'a> {
         Recitation {
             starting_numbers,
             count: 0,
-            spoken: Vec::new(),
+            spoken: HashMap::new(),
+            last_spoken: 0,
         }
     }
 }
@@ -36,26 +40,17 @@ impl<'a> Iterator for Recitation<'a> {
         let next = if (self.count as usize) < self.starting_numbers.len() {
             self.starting_numbers[self.count as usize]
         } else {
-            let last_spoken = *self.spoken.last().unwrap();
-            let previously_spoken_at = self.spoken[0..self.spoken.len() - 1]
-                .iter()
-                .enumerate()
-                .rev()
-                .find_map(|(i, n)| {
-                    if *n == last_spoken {
-                        Some(i as i32)
-                    } else {
-                        None
-                    }
-                });
+            let previously_spoken_at = self.spoken.get(&self.last_spoken);
             match previously_spoken_at {
-                Some(i) => self.count - 1 - i,
+                Some(i) => self.count - i,
                 None => 0,
             }
         };
-
+        if self.count != 0 {
+            self.spoken.insert(self.last_spoken, self.count);
+        }
         self.count += 1;
-        self.spoken.push(next);
+        self.last_spoken = next;
         Some(next)
     }
 }
@@ -82,7 +77,7 @@ mod tests {
 
     #[test]
     fn test_solve_part2() {
-        // assert_eq!(solve_part2(&INPUT), 175594);
-        // assert_eq!(solve_part2(&[1, 3, 2]), 2578);
+        assert_eq!(solve_part2(&INPUT), 175594);
+        assert_eq!(solve_part2(&[1, 3, 2]), 2578);
     }
 }
