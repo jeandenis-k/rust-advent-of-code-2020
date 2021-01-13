@@ -37,21 +37,12 @@ impl Input {
 
     fn find_possible_field_for_each_index(self: &Input) -> Vec<(&'_ str, Vec<i32>)> {
         let valid_tickets: Vec<&Vec<i32>> = self.valid_tickets().collect();
-        dbg!(&self.rules);
-        dbg!(&valid_tickets);
         self.rules
             .iter()
             .map(|rule| {
-                dbg!(&rule.field);
                 let possible_indices: Vec<_> = (0_i32..(self.rules.len() as i32))
                     .into_iter()
                     .filter(|&possible_index| {
-                        dbg!(&possible_index);
-                        dbg!(valid_tickets
-                            .iter()
-                            .by_ref()
-                            .map(|&t| rule.clone().validate(t[possible_index as usize]))
-                            .collect::<Vec<_>>());
                         valid_tickets
                             .iter()
                             .by_ref()
