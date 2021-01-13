@@ -1,4 +1,5 @@
 use regex::Regex;
+use std::collections::HashSet;
 use std::ops::RangeInclusive;
 
 static INPUT: &str = include_str!("input");
@@ -35,12 +36,41 @@ impl Input {
             .sum()
     }
 
-    fn find_possible_field_for_each_index(self: &Input) -> Vec<(&'_ str, Vec<i32>)> {
+    fn solve_field_indices(&self) -> Vec<(&str, i32)> {
+        // comment ?
+        // looper sur tableau en marquant les items qui n'ont qu'une possibilité
+        let mut possibilities = self.find_possible_field_for_each_index();
+        let mut found: HashSet<i32> = HashSet::new();
+        while possibilities.iter().any(|(_, indices)| indices.len() > 1) {
+            let first_found = possibilities.iter().find_map(|(field, indices)| {
+                if indices.len() == 1 && !found.contains(indices.iter().next().unwrap()) {
+                    Some((field.to_string(), indices))
+                } else {
+                    None
+                }
+            });
+            if let Some((found_field, indices)) = first_found {
+                let found_index = indices.iter().cloned().next().unwrap();
+                found.insert(found_index);
+                for (field, candidates) in possibilities.iter_mut() {
+                    if field != &found_field {
+                        candidates.remove(&found_index);
+                    }
+                }
+            }
+        }
+        possibilities
+            .iter()
+            .map(|(field, indices)| (*field, *indices.iter().next().unwrap()))
+            .collect()
+    }
+
+    fn find_possible_field_for_each_index(self: &Input) -> Vec<(&'_ str, HashSet<i32>)> {
         let valid_tickets: Vec<&Vec<i32>> = self.valid_tickets().collect();
         self.rules
             .iter()
             .map(|rule| {
-                let possible_indices: Vec<_> = (0_i32..(self.rules.len() as i32))
+                let possible_indices = (0_i32..(self.rules.len() as i32))
                     .into_iter()
                     .filter(|&possible_index| {
                         valid_tickets
@@ -172,13 +202,21 @@ mod tests_part2 {
     static INPUT: &str = include_str!("input_example2");
 
     #[test]
-    fn test_solve_part1() {
+    fn test_solve_field_indices() {
+        assert_eq!(
+            Input::parse(INPUT).solve_field_indices(),
+            vec![("class", 1), ("row", 0), ("seat", 2)]
+        )
+    }
+
+    #[test]
+    fn test_find_possible_field_indices() {
         assert_eq!(
             Input::parse(INPUT).find_possible_field_for_each_index(),
             vec![
-                ("class", vec![1, 2]),
-                ("row", vec![0, 1, 2]),
-                ("seat", vec![2])
+                ("class", [1, 2].iter().cloned().collect()),
+                ("row", [0, 1, 2].iter().cloned().collect()),
+                ("seat", [2].iter().cloned().collect())
             ]
         )
     }
