@@ -20,10 +20,11 @@ struct Rule {
 fn main() {
     let input = Input::parse(INPUT);
     println!("{}", input.solve_part1());
+    println!("{:?}", input.find_possible_field_for_each_index());
 }
 
 impl Input {
-    fn solve_part1(self) -> i32 {
+    fn solve_part1(&self) -> i32 {
         self.nearby_tickets
             .iter()
             .flat_map(|ticket| {
