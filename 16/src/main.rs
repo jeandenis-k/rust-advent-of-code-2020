@@ -10,7 +10,7 @@ struct Input {
     nearby_tickets: Vec<Vec<i32>>,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq)]
 struct Rule {
     field: String,
     range1: RangeInclusive<i32>,
@@ -30,7 +30,7 @@ impl Input {
             .flat_map(|ticket| {
                 ticket
                     .iter()
-                    .filter(|n| self.rules.iter().all(|r| !r.clone().validate(**n)))
+                    .filter(|n| self.rules.iter().all(|r| !r.validate(**n)))
             })
             .sum()
     }
@@ -46,7 +46,7 @@ impl Input {
                         valid_tickets
                             .iter()
                             .by_ref()
-                            .all(|&t| rule.clone().validate(t[possible_index as usize]))
+                            .all(|&t| rule.validate(t[possible_index as usize]))
                     })
                     .collect();
                 (&rule.field as &str, possible_indices)
@@ -58,7 +58,7 @@ impl Input {
         self.nearby_tickets.iter().filter(move |&ticket| {
             !ticket
                 .iter()
-                .any(|&n| self.rules.iter().all(|r| !r.clone().validate(n)))
+                .any(|&n| self.rules.iter().all(|r| !r.validate(n)))
         })
     }
 
@@ -107,7 +107,7 @@ impl Input {
 }
 
 impl Rule {
-    fn validate(self, n: i32) -> bool {
+    fn validate(&self, n: i32) -> bool {
         self.range1.contains(&n) || self.range2.contains(&n)
     }
 }
