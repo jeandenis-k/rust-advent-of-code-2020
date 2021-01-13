@@ -21,7 +21,7 @@ struct Rule {
 fn main() {
     let input = Input::parse(INPUT);
     println!("{}", input.solve_part1());
-    println!("{:?}", input.find_possible_field_for_each_index());
+    println!("{}", input.solve_part2());
 }
 
 impl Input {
@@ -34,6 +34,21 @@ impl Input {
                     .filter(|n| self.rules.iter().all(|r| !r.validate(**n)))
             })
             .sum()
+    }
+
+    fn solve_part2(&self) -> i64 {
+        let field_indices = self.solve_field_indices();
+        field_indices
+            .iter()
+            .filter_map(|(field, index)| {
+                if field.starts_with("departure") {
+                    let value: i64 = i64::from(self.ticket[*index as usize]);
+                    Some(value)
+                } else {
+                    None
+                }
+            })
+            .fold(1_i64, std::ops::Mul::mul)
     }
 
     fn solve_field_indices(&self) -> Vec<(&str, i32)> {
