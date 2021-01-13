@@ -29,10 +29,6 @@ impl Input {
             .flat_map(|ticket| {
                 ticket
                     .iter()
-                    .inspect(|n| {
-                        dbg!(n);
-                        dbg!(self.rules.iter().all(|r| !r.clone().validate(**n)));
-                    })
                     .filter(|n| self.rules.iter().all(|r| !r.clone().validate(**n)))
             })
             .sum()
@@ -43,7 +39,7 @@ impl Input {
             .by_ref()
             .take_while(|l| *l != "your ticket:")
             .filter_map(|l| {
-                if l != "" {
+                if !l.is_empty() {
                     let re = Regex::new(r"(.*): (\d*)-(\d*) or (\d*)-(\d*)").unwrap();
                     let matches = re.captures(&l).unwrap();
                     Some(Rule {
