@@ -33,6 +33,15 @@ impl Input {
             })
             .sum()
     }
+
+    fn valid_tickets(self: &Input) -> impl Iterator<Item = &'_ Vec<i32>> {
+        self.nearby_tickets.iter().filter(move |&ticket| {
+            !ticket
+                .iter()
+                .any(|&n| self.rules.iter().all(|r| !r.clone().validate(n)))
+        })
+    }
+
     fn parse(s: &str) -> Input {
         let mut lines = s.lines();
         let rules = lines
@@ -92,6 +101,14 @@ mod tests {
     #[test]
     fn test_solve_part1() {
         assert_eq!(Input::parse(INPUT).solve_part1(), 71)
+    }
+
+    #[test]
+    fn test_valid_tickets() {
+        assert_eq!(
+            Input::parse(INPUT).valid_tickets().collect::<Vec<_>>(),
+            vec![&vec![7_i32, 3, 47]]
+        )
     }
 
     #[test]
